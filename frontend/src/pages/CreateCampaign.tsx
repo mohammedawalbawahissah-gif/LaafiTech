@@ -14,6 +14,7 @@ import {
   InputLabel,
   TextareaAutosize,
   Grid,
+  SelectChangeEvent,
 } from '@mui/material';
 
 const CreateCampaign: React.FC = () => {
@@ -27,8 +28,9 @@ const CreateCampaign: React.FC = () => {
     targetBeneficiaries: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>) => {
-    const { name, value } = e.target as HTMLInputElement;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }> | SelectChangeEvent<string>) => {
+    const target = e.target as any;
+    const { name, value } = target;
     setFormData({
       ...formData,
       [name]: value,

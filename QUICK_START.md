@@ -3,6 +3,7 @@
 ## 🚀 Starting the Application Locally
 
 ### Prerequisites
+
 - Node.js 16+ (for frontend)
 - Python 3.9+ (for backend)
 - Git
@@ -20,7 +21,7 @@ npm install --legacy-peer-deps
 npm start
 ```
 
-Frontend will be available at: **http://localhost:3000**
+Frontend will be available at: **<http://localhost:3000>**
 
 ### Step 2: Backend Setup
 
@@ -42,29 +43,32 @@ cd app
 uvicorn main:app --reload
 ```
 
-Backend API will be available at: **http://localhost:8000**
-API Documentation (Swagger UI): **http://localhost:8000/docs**
+Backend API will be available at: **<http://localhost:8000>**
+API Documentation (Swagger UI): **<http://localhost:8000/docs>**
 
 ---
 
 ## 📱 Accessing the Platform
 
 ### Main Pages
-- **Dashboard**: http://localhost:3000/
-- **Communities**: http://localhost:3000/communities
-- **Campaigns**: http://localhost:3000/campaigns
-- **Donors**: http://localhost:3000/donors
-- **Analytics**: http://localhost:3000/analytics
+
+- **Dashboard**: <http://localhost:3000/>
+- **Communities**: <http://localhost:3000/communities>
+- **Campaigns**: <http://localhost:3000/campaigns>
+- **Donors**: <http://localhost:3000/donors>
+- **Analytics**: <http://localhost:3000/analytics>
 
 ### Backend API Endpoints
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+
+- **Swagger UI**: <http://localhost:8000/docs>
+- **ReDoc**: <http://localhost:8000/redoc>
 
 ---
 
 ## 🔧 Common Development Tasks
 
 ### Frontend Development
+
 ```bash
 cd frontend
 
@@ -85,6 +89,7 @@ npm run lint
 ```
 
 ### Backend Development
+
 ```bash
 cd backend
 source venv/bin/activate  # or .\venv\Scripts\Activate.ps1 on Windows
@@ -113,6 +118,7 @@ mypy app/
 ## 📁 Key Files & Directories
 
 ### Frontend
+
 - `src/pages/` - Main page components
 - `src/components/` - Reusable React components
 - `src/store/` - Redux state management
@@ -120,6 +126,7 @@ mypy app/
 - `package.json` - Dependencies and scripts
 
 ### Backend
+
 - `app/main.py` - Application entry point
 - `app/api/v1/endpoints/` - API route handlers
 - `app/models/` - SQLAlchemy database models
@@ -133,14 +140,18 @@ mypy app/
 ## 🔐 Environment Variables
 
 ### Frontend (.env)
+
 Create `frontend/.env`:
+
 ```
 REACT_APP_API_URL=http://localhost:8000/api/v1
 REACT_APP_ENV=development
 ```
 
 ### Backend (.env)
+
 Create `backend/app/.env`:
+
 ```
 DATABASE_URL=sqlite:///./laafitech.db
 JWT_SECRET_KEY=your-secret-key-here
@@ -156,6 +167,7 @@ DEBUG=True
 ### Frontend Issues
 
 **Error: "Cannot find module 'react'"**
+
 ```bash
 cd frontend
 rm -rf node_modules package-lock.json
@@ -163,6 +175,7 @@ npm install --legacy-peer-deps
 ```
 
 **Port 3000 already in use**
+
 ```bash
 # On Windows
 netstat -ano | findstr :3000
@@ -175,6 +188,7 @@ lsof -ti:3000 | xargs kill -9
 ### Backend Issues
 
 **Python module not found**
+
 ```bash
 cd backend
 .\venv\Scripts\Activate.ps1  # Windows
@@ -183,6 +197,7 @@ pip install -r requirements.txt
 ```
 
 **Port 8000 already in use**
+
 ```bash
 # On Windows
 netstat -ano | findstr :8000
@@ -196,11 +211,11 @@ lsof -ti:8000 | xargs kill -9
 
 ## 📚 Documentation
 
-- **React**: https://react.dev
-- **FastAPI**: https://fastapi.tiangolo.com
-- **Material-UI**: https://mui.com
-- **Redux**: https://redux.js.org
-- **TypeScript**: https://www.typescriptlang.org/docs
+- **React**: <https://react.dev>
+- **FastAPI**: <https://fastapi.tiangolo.com>
+- **Material-UI**: <https://mui.com>
+- **Redux**: <https://redux.js.org>
+- **TypeScript**: <https://www.typescriptlang.org/docs>
 
 ---
 
@@ -217,8 +232,9 @@ lsof -ti:8000 | xargs kill -9
 ## 📞 Support
 
 For issues or questions:
+
 - Check the DEVELOPMENT_GUIDE.md for detailed architecture info
-- Review API documentation at http://localhost:8000/docs
+- Review API documentation at <http://localhost:8000/docs>
 - Check component stories and examples in the frontend
 
 ---
