@@ -6,7 +6,10 @@ Distribution / agent / funder / payment / AI verification system for LaafiTech.
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 # --- Security -----------------------------------------------------------
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
@@ -73,16 +76,30 @@ WSGI_APPLICATION = "laafitech.wsgi.application"
 # NOTE: GPS coordinates are stored as plain decimal lat/lng fields (not PostGIS)
 # to keep deployment simple on Railway's standard Postgres. Swap to PostGIS
 # later if proximity/geo-queries become a real need.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "laafitech"),
-        "USER": os.environ.get("DB_USER", "postgres"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
+# --- Database ---------------------------------------------------------
+# Local dev defaults to SQLite (zero setup). Set DB_ENGINE=postgresql
+# (and DB_NAME/DB_USER/DB_PASSWORD/DB_HOST/DB_PORT) to point at a real
+# Postgres instance — that's what Railway production uses.
+DB_ENGINE = os.environ.get("DB_ENGINE", "sqlite")
+
+if DB_ENGINE == "postgresql":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "laafitech"),
+            "USER": os.environ.get("DB_USER", "postgres"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # --- Custom user model ----------------------------------------------------
 AUTH_USER_MODEL = "accounts.User"

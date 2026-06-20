@@ -10,13 +10,18 @@ system design, data model rationale, and AI integration details.
 
 ```bash
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env   # fill in real values
+cp .env.example .env          # defaults to SQLite — works with no DB install
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
+
+By default `DB_ENGINE=sqlite` in `.env.example`, so `migrate` works
+immediately with zero database setup. To point at Postgres instead (e.g.
+to test against the same engine as production), set `DB_ENGINE=postgresql`
+plus `DB_NAME`/`DB_USER`/`DB_PASSWORD`/`DB_HOST`/`DB_PORT` in `.env`.
 
 ## App structure
 
