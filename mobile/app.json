@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "LaafiTech Agent",
+    "slug": "laafitech-agent",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A4F47"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.laafitech.agent",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "LaafiTech uses your location to verify where each pad distribution takes place.",
+        "NSCameraUsageDescription": "LaafiTech uses your camera to capture proof-of-distribution photos."
+      }
+    },
+    "android": {
+      "package": "com.laafitech.agent",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A4F47"
+      },
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "CAMERA"]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "LaafiTech uses your location to verify where each pad distribution takes place."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "LaafiTech uses your camera to capture proof-of-distribution photos."
+        }
+      ]
+    ]
+  }
+}

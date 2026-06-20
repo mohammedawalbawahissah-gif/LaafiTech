@@ -1,0 +1,36 @@
+# --- Python / Django (backend) ---
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/db.sqlite3
+backend/db_test.sqlite3
+backend/*.log
+backend/.env
+backend/staticfiles/
+backend/media/
+
+# --- Node / React (frontend) ---
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.env
+frontend/**/*.local
+
+# --- Node / Expo (mobile) ---
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/.env
+mobile/*.jks
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
