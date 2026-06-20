@@ -13,20 +13,22 @@ Uses Postgres by default (matches Railway production). One-time setup:
 1. Install Postgres:
    - Windows: `winget install PostgreSQL.PostgreSQL` (or the installer from
      postgresql.org) — note the password you set for the `postgres` user
-     during setup.
+     during setup; you'll need it once, below.
    - Mac: `brew install postgresql@16 && brew services start postgresql@16`
-2. Create the database:
+2. Create a dedicated `laafitech_admin` role and database (don't run the
+   app against the `postgres` superuser role):
    ```powershell
-   psql -U postgres -c "CREATE DATABASE laafitech;"
+   psql -U postgres -c "CREATE ROLE laafitech_admin WITH LOGIN PASSWORD 'choose-a-password' CREATEDB;"
+   psql -U postgres -c "CREATE DATABASE laafitech OWNER laafitech_admin;"
    ```
-   (enter the password you set during install when prompted)
+   (enter the `postgres` user's password when prompted for each command)
 
 Then:
 ```bash
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env          # set DB_PASSWORD to your postgres password
+cp .env.example .env          # set DB_PASSWORD to the password you chose above
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver

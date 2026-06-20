@@ -33,14 +33,14 @@ cd backend
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env          # set DB_PASSWORD to your local postgres password
+cp .env.example .env          # set DB_PASSWORD for the laafitech_admin role
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
-Needs a local Postgres database named `laafitech` (see `backend/README.md`
-for setup). No Postgres? Set `DB_ENGINE=sqlite` in `.env` for zero-setup
-local dev instead.
+Needs a local Postgres role `laafitech_admin` owning a `laafitech`
+database (see `backend/README.md` for the exact `psql` commands). No
+Postgres? Set `DB_ENGINE=sqlite` in `.env` for zero-setup local dev instead.
 
 ### Frontend — Web (Admin + Funder, unified)
 ```bash
