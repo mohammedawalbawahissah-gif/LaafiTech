@@ -16,8 +16,9 @@ laafitech/
 ├── backend/    # Django REST Framework API (accounts, agents, inventory,
 │               # distributions, funders, payments, ai_services, reports)
 ├── frontend/
-│   ├── admin/  # React/Vite — LaafiTech internal ops console
-│   └── funder/ # React/Vite — funder/NGO/CSR procurement dashboard
+│   └── web/    # React/Vite — ONE app for both LaafiTech Admin and Funder
+│               # roles, with role-based sign-up/sign-in and routing
+│               # (/admin/* vs /funder/*)
 └── mobile/     # React Native (Expo) — agent app, Android + iOS
 ```
 
@@ -38,21 +39,17 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### Frontend — Admin Console
+### Frontend — Web (Admin + Funder, unified)
 ```bash
-cd frontend/admin
+cd frontend/web
 npm install
 cp .env.example .env          # set VITE_API_BASE_URL
 npm run dev
 ```
-
-### Frontend — Funder Dashboard
-```bash
-cd frontend/funder
-npm install
-cp .env.example .env          # set VITE_API_BASE_URL
-npm run dev
-```
+Visiting `/signup` lets a new user pick **Funder** or **LaafiTech Admin**;
+after sign-in/sign-up, the user's role decides whether they land on
+`/admin` or `/funder`. See `frontend/web/README.md` for a note on locking
+down public Admin sign-up before going live with real funders/payouts.
 
 ### Mobile — Agent App (Expo)
 ```bash
@@ -67,12 +64,13 @@ Scan the QR code with Expo Go (Android/iOS) for device testing, or press
 ## Status
 
 - Backend: migrations validated across all 8 apps, system checks pass.
-- Admin + Funder web apps: `npm run build` verified clean on both.
+- Web app (Admin + Funder, unified): `npm run build` verified clean,
+  role-based sign-up/sign-in and route gating in place.
 - Agent mobile app: dependencies installed, `expo-doctor` passes 19/21
   checks (the 2 failures are external network/schema lookups unavailable
   in this build environment, not project issues).
-- **Not yet done:** end-to-end integration test of all three frontends
-  against a live backend instance running together.
+- **Not yet done:** end-to-end integration test of web + mobile against a
+  live backend instance running together.
 
 ## Deployment target
 
