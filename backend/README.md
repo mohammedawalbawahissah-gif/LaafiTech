@@ -8,20 +8,33 @@ system design, data model rationale, and AI integration details.
 
 ## Local setup
 
+Uses Postgres by default (matches Railway production). One-time setup:
+
+1. Install Postgres:
+   - Windows: `winget install PostgreSQL.PostgreSQL` (or the installer from
+     postgresql.org) — note the password you set for the `postgres` user
+     during setup.
+   - Mac: `brew install postgresql@16 && brew services start postgresql@16`
+2. Create the database:
+   ```powershell
+   psql -U postgres -c "CREATE DATABASE laafitech;"
+   ```
+   (enter the password you set during install when prompted)
+
+Then:
 ```bash
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env          # defaults to SQLite — works with no DB install
+cp .env.example .env          # set DB_PASSWORD to your postgres password
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-By default `DB_ENGINE=sqlite` in `.env.example`, so `migrate` works
-immediately with zero database setup. To point at Postgres instead (e.g.
-to test against the same engine as production), set `DB_ENGINE=postgresql`
-plus `DB_NAME`/`DB_USER`/`DB_PASSWORD`/`DB_HOST`/`DB_PORT` in `.env`.
+No local Postgres install? Set `DB_ENGINE=sqlite` in `.env` instead —
+`migrate` then works with zero database setup (good for a quick spin-up,
+not for testing things that depend on Postgres-specific behavior).
 
 ## App structure
 

@@ -33,11 +33,14 @@ cd backend
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env          # defaults to SQLite — no DB install needed
+cp .env.example .env          # set DB_PASSWORD to your local postgres password
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
+Needs a local Postgres database named `laafitech` (see `backend/README.md`
+for setup). No Postgres? Set `DB_ENGINE=sqlite` in `.env` for zero-setup
+local dev instead.
 
 ### Frontend — Web (Admin + Funder, unified)
 ```bash
