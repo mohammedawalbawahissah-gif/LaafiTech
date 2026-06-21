@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 
 export default function ImpactOverview() {
   const [report, setReport] = useState(null);
@@ -14,18 +15,18 @@ export default function ImpactOverview() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Impact overview</h1>
-          <p>Every figure here is backed by photo + GPS verified distribution records.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Funder · Impact"
+        title="Impact overview"
+        description="Every figure here is backed by photo + GPS verified distribution records."
+        accent="coral"
+      />
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
       {!loading && report && (
         <div className="stat-grid">
-          <StatCard label="Pads distributed" value={report.pads_distributed_count} sub="Verified units" />
+          <StatCard label="Pads distributed" value={report.pads_distributed_count} sub="Verified units" dark />
           <StatCard label="Girls reached (est.)" value={report.girls_reached_estimate} sub="Based on verified distributions" />
           <StatCard label="Schools covered" value={report.schools_covered_count} sub="Across reporting period" />
           <StatCard label="Cost per girl" value={report.cost_per_girl ? `GHS ${report.cost_per_girl}` : "—"} sub="Funder contribution / girls reached" />
@@ -51,9 +52,9 @@ export default function ImpactOverview() {
   );
 }
 
-function StatCard({ label, value, sub }) {
+function StatCard({ label, value, sub, dark }) {
   return (
-    <div className="card stat-card">
+    <div className={`card stat-card${dark ? " stat-card-dark" : ""}`}>
       <div className="label">{label}</div>
       <div className="value mono">{value ?? "—"}</div>
       <div className="sub">{sub}</div>

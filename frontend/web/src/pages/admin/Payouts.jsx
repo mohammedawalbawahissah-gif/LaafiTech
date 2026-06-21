@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 
 export default function Payouts() {
   const [payouts, setPayouts] = useState([]);
@@ -25,12 +26,12 @@ export default function Payouts() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Payouts</h1>
-          <p>Routed automatically: MTN agents via native MoMo, Vodafone/AirtelTigo via Hubtel.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Admin · Operations"
+        title="Payouts"
+        description="Routed automatically: MTN agents via native MoMo, Vodafone/AirtelTigo via Hubtel."
+        accent="coral"
+      />
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 

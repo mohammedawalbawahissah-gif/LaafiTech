@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 import EvidenceStamp from "../../components/EvidenceStamp";
 
 export default function Deliveries() {
@@ -17,12 +18,12 @@ export default function Deliveries() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Verified deliveries</h1>
-          <p>Browse confirmed distributions with photo + GPS evidence.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Funder · Impact"
+        title="Verified deliveries"
+        description="Browse confirmed distributions with photo + GPS evidence."
+        accent="coral"
+      />
 
       <div className="field" style={{ maxWidth: 280, marginBottom: 20 }}>
         <label>Filter by district</label>

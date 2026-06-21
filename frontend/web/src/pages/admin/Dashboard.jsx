@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -25,12 +26,12 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Operations overview</h1>
-          <p>What needs your attention right now.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Admin · Operations"
+        title="Operations overview"
+        description="What needs your attention right now."
+        accent="coral"
+      />
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
@@ -43,6 +44,7 @@ export default function Dashboard() {
             label="Pads distributed"
             value={stats.latestReport?.pads_distributed_count ?? "—"}
             sub={stats.latestReport ? `As of last report` : "No report generated yet"}
+            dark
           />
         </div>
       )}
@@ -67,9 +69,9 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ label, value, sub }) {
+function StatCard({ label, value, sub, dark }) {
   return (
-    <div className="card stat-card">
+    <div className={`card stat-card${dark ? " stat-card-dark" : ""}`}>
       <div className="label">{label}</div>
       <div className="value mono">{value}</div>
       <div className="sub">{sub}</div>

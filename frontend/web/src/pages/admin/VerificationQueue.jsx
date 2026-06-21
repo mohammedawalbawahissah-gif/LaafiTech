@@ -3,6 +3,7 @@ import client from "../../api/client";
 import StatusBadge from "../../components/StatusBadge";
 import EvidenceStamp from "../../components/EvidenceStamp";
 import AnomalyFlags from "../../components/AnomalyFlags";
+import PageHeader from "../../components/PageHeader";
 
 export default function VerificationQueue() {
   const [records, setRecords] = useState([]);
@@ -31,12 +32,12 @@ export default function VerificationQueue() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Verification queue</h1>
-          <p>AI-flagged records are surfaced first. Approving unlocks payout eligibility.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Admin · Operations"
+        title="Verification queue"
+        description="AI-flagged records are surfaced first. Approving unlocks payout eligibility."
+        accent="coral"
+      />
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 

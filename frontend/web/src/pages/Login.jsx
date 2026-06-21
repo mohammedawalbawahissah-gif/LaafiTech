@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { roleHome } from "../utils/roleHome";
 
 export default function Login() {
   const { login } = useAuth();
@@ -16,7 +17,7 @@ export default function Login() {
     setLoading(true);
     try {
       const user = await login(phone, password);
-      navigate(user.role === "admin" || user.role === "superadmin" ? "/admin" : "/funder");
+      navigate(roleHome(user.role));
     } catch {
       setError("Incorrect phone number or password.");
     } finally {

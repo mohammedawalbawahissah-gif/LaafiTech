@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 
 export default function Procure() {
   const [schools, setSchools] = useState([]);
@@ -38,12 +39,12 @@ export default function Procure() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Procure deliveries</h1>
-          <p>Fund verified pad deliveries to a specific school, not a generic campaign.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Funder · Impact"
+        title="Procure deliveries"
+        description="Fund verified pad deliveries to a specific school, not a generic campaign."
+        accent="coral"
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 24 }}>
         <form className="card" onSubmit={handleSubmit}>

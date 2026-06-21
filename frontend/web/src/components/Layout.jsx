@@ -1,49 +1,72 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AssistantWidget from "./AssistantWidget";
+import NavIcon from "./NavIcon";
 
 const ADMIN_NAV = [
-  { to: "/admin", label: "Dashboard", end: true },
-  { to: "/admin/verification-queue", label: "Verification Queue" },
-  { to: "/admin/agents", label: "Agents" },
-  { to: "/admin/inventory", label: "Inventory" },
-  { to: "/admin/payouts", label: "Payouts" },
-  { to: "/admin/schools", label: "Schools & Need Scores" },
+  { to: "/admin", label: "Dashboard", icon: "dashboard", title: "Dashboard", end: true },
+  { to: "/admin/verification-queue", label: "Verify", icon: "verify", title: "Verification Queue" },
+  { to: "/admin/agents", label: "Agents", icon: "agents", title: "Agents" },
+  { to: "/admin/inventory", label: "Stock", icon: "inventory", title: "Inventory" },
+  { to: "/admin/payouts", label: "Payouts", icon: "payouts", title: "Payouts" },
+  { to: "/admin/schools", label: "Schools", icon: "schools", title: "Schools & Need Scores" },
 ];
 
 const FUNDER_NAV = [
-  { to: "/funder", label: "Impact Overview", end: true },
-  { to: "/funder/deliveries", label: "Verified Deliveries" },
-  { to: "/funder/procure", label: "Procure Deliveries" },
-  { to: "/funder/orders", label: "My Orders" },
+  { to: "/funder", label: "Impact", icon: "impact", title: "Impact Overview", end: true },
+  { to: "/funder/deliveries", label: "Deliveries", icon: "deliveries", title: "Verified Deliveries" },
+  { to: "/funder/procure", label: "Procure", icon: "procure", title: "Procure Deliveries" },
+  { to: "/funder/orders", label: "Orders", icon: "orders", title: "My Orders" },
+];
+
+const AGENT_NAV = [
+  { to: "/agent", label: "Home", icon: "home", title: "Home", end: true },
+  { to: "/agent/log", label: "Log", icon: "log", title: "Log Distribution" },
+  { to: "/agent/inventory", label: "Stock", icon: "inventory", title: "Inventory" },
+  { to: "/agent/earnings", label: "Earnings", icon: "earnings", title: "Earnings" },
+  { to: "/agent/history", label: "History", icon: "history", title: "History" },
+  { to: "/agent/profile", label: "Profile", icon: "profile", title: "Profile" },
+];
+
+const COMMUNITY_NAV = [
+  { to: "/community", label: "Home", icon: "home", title: "Home", end: true },
+  { to: "/community/tracker", label: "Tracker", icon: "tracker", title: "Cycle Tracker" },
+  { to: "/community/shop", label: "Shop", icon: "shop", title: "Shop" },
+  { to: "/community/profile", label: "Profile", icon: "profile", title: "Profile" },
 ];
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
-  const nav = isAdmin ? ADMIN_NAV : FUNDER_NAV;
-  const brand = isAdmin ? "LaafiTech Admin" : "LaafiTech";
+  const isAgent = user?.role === "agent";
+  const isCommunity = user?.role === "community_user";
+  const nav = isAdmin ? ADMIN_NAV : isAgent ? AGENT_NAV : isCommunity ? COMMUNITY_NAV : FUNDER_NAV;
+
+  const initial = (user?.first_name || user?.username || "?").charAt(0).toUpperCase();
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <div className="sidebar-brand"><span className="dot" />{brand}</div>
-        <nav className="sidebar-nav">
+      <aside className="rail">
+        <div className="rail-brand" title="LaafiTech">L</div>
+        <nav className="rail-nav">
           {nav.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end}>
-              {item.label}
+            <NavLink key={item.to} to={item.to} end={item.end} className="rail-link" title={item.title}>
+              <NavIcon name={item.icon} />
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-footer">
-          <div style={{ marginBottom: 8 }}>{user?.first_name || user?.username}</div>
-          <button className="btn btn-ghost" style={{ color: "#cfe4e0", borderColor: "rgba(255,255,255,0.2)" }} onClick={logout}>
-            Log out
+        <div className="rail-footer">
+          <div className="rail-avatar" title={user?.first_name || user?.username}>{initial}</div>
+          <button className="rail-logout" onClick={logout} title="Log out">
+            <NavIcon name="logout" />
           </button>
         </div>
       </aside>
       <main className="main">
         <Outlet />
       </main>
+      <AssistantWidget role={user?.role} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -25,12 +26,12 @@ export default function Orders() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>My orders</h1>
-          <p>Status, fulfillment, and AI-generated impact reports for your procurement orders.</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Funder · Impact"
+        title="My orders"
+        description="Status, fulfillment, and AI-generated impact reports for your procurement orders."
+        accent="coral"
+      />
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 

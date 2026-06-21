@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
+import PageHeader from "../../components/PageHeader";
 
 export default function Inventory() {
   const [batches, setBatches] = useState([]);
@@ -24,15 +25,17 @@ export default function Inventory() {
 
   return (
     <>
-      <div className="topbar">
-        <div>
-          <h1>Inventory</h1>
-          <p>Production batches from LaafiTech manufacturing.</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? "Cancel" : "Log new batch"}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Admin · Operations"
+        title="Inventory"
+        description="Production batches from LaafiTech manufacturing."
+        accent="coral"
+        action={
+          <button className="btn btn-primary" onClick={() => setShowForm((s) => !s)}>
+            {showForm ? "Cancel" : "Log new batch"}
+          </button>
+        }
+      />
 
       {showForm && (
         <form className="card" style={{ marginBottom: 20 }} onSubmit={submit}>

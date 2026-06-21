@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { roleHome } from "./utils/roleHome";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -16,10 +17,21 @@ import Deliveries from "./pages/funder/Deliveries";
 import Procure from "./pages/funder/Procure";
 import Orders from "./pages/funder/Orders";
 
+import AgentHome from "./pages/agent/AgentHome";
+import AgentLogDistribution from "./pages/agent/AgentLogDistribution";
+import AgentInventory from "./pages/agent/AgentInventory";
+import AgentEarnings from "./pages/agent/AgentEarnings";
+import AgentHistory from "./pages/agent/AgentHistory";
+import AgentProfile from "./pages/agent/AgentProfile";
+
+import CommunityHome from "./pages/community/CommunityHome";
+import CycleTracker from "./pages/community/CycleTracker";
+import Shop from "./pages/community/Shop";
+import CommunityProfile from "./pages/community/CommunityProfile";
+
 function HomeRedirect() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
-  return <Navigate to={isAdmin ? "/admin" : "/funder"} replace />;
+  return <Navigate to={roleHome(user?.role)} replace />;
 }
 
 function PrivateRoute({ allow, children }) {
@@ -73,6 +85,36 @@ function AppRoutes() {
         <Route path="deliveries" element={<Deliveries />} />
         <Route path="procure" element={<Procure />} />
         <Route path="orders" element={<Orders />} />
+      </Route>
+
+      <Route
+        path="/agent"
+        element={
+          <PrivateRoute allow={["agent"]}>
+            <Layout />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<AgentHome />} />
+        <Route path="log" element={<AgentLogDistribution />} />
+        <Route path="inventory" element={<AgentInventory />} />
+        <Route path="earnings" element={<AgentEarnings />} />
+        <Route path="history" element={<AgentHistory />} />
+        <Route path="profile" element={<AgentProfile />} />
+      </Route>
+
+      <Route
+        path="/community"
+        element={
+          <PrivateRoute allow={["community_user"]}>
+            <Layout />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<CommunityHome />} />
+        <Route path="tracker" element={<CycleTracker />} />
+        <Route path="shop" element={<Shop />} />
+        <Route path="profile" element={<CommunityProfile />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
