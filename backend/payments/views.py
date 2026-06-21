@@ -18,16 +18,29 @@ class PayoutViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ["status", "method", "agent"]
 
+    def get_permissions(self):
+        # Agents may only view their own payouts (read-only); creating,
+        # editing, or deleting a payout is admin-only.
+        if self.action in ("create", "update", "partial_update", "destroy"):
+            return [permissions.IsAuthenticated(), IsAdmin()]
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.role == "agent":
+        role = self.request.user.role
+        if role == "agent":
             return qs.filter(agent__user=self.request.user)
-        return qs
+        if role in ("admin", "superadmin"):
+            return qs
+        # Any other role (funder, community_user) has no business seeing
+        # agent payout data -- previously this fell through unfiltered.
+        return qs.none()
 
     def perform_create(self, serializer):
-        # Only admins can initiate payouts, and only for already-verified
-        # distribution records (enforced at the distribution_records level
-        # via the platform's "held until verified" policy).
+        # Only admins can initiate payouts (enforced by get_permissions
+        # above), and only for already-verified distribution records
+        # (enforced at the distribution_records level via the platform's
+        # "held until verified" policy).
         serializer.save(initiated_by=self.request.user)
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdmin])

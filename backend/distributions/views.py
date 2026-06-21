@@ -12,10 +12,20 @@ from .serializers import (
 )
 
 
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """Any authenticated user can read reference data like Schools; only
+    admins can create/edit/delete it."""
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.is_authenticated and request.user.role in ("admin", "superadmin")
+
+
 class SchoolViewSet(viewsets.ModelViewSet):
     queryset = School.objects.all()
     serializer_class = SchoolSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
     filterset_fields = ["district", "region"]
 
 
@@ -27,9 +37,16 @@ class DistributionRecordViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.role == "agent":
+        role = self.request.user.role
+        if role == "agent":
             return qs.filter(agent__user=self.request.user)
-        return qs
+        if role == "funder":
+            # Funders should only see records tied to procurement orders
+            # they actually placed -- not every agent's deliveries platform-wide.
+            return qs.filter(procurement_orders__funder__user=self.request.user).distinct()
+        if role in ("admin", "superadmin"):
+            return qs
+        return qs.none()
 
     def perform_create(self, serializer):
         """
@@ -38,7 +55,40 @@ class DistributionRecordViewSet(viewsets.ModelViewSet):
         AI assists the human reviewer, it never auto-verifies, because
         payouts are held until admin approval per platform policy.
         """
-        record = serializer.save()
+        role = self.request.user.role
+        if role == "agent":
+            # Force the record onto the logged-in agent's own profile --
+            # never trust an `agent` id submitted in the request body, or
+            # one agent could log distributions under another agent's name.
+            agent_profile = getattr(self.request.user, "agent_profile", None)
+            if agent_profile is None:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError("No agent profile is linked to this account.")
+            if agent_profile.verification_status != "verified":
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied(
+                    "Your agent account is awaiting admin verification before you can log distributions."
+                )
+            record = serializer.save(agent=agent_profile)
+        elif role in ("admin", "superadmin"):
+            # Admins may log/correct a record on behalf of a specific agent
+            # (manual entry). `agent` is read-only on the serializer, so it
+            # must be resolved explicitly here rather than trusted as-is.
+            from rest_framework.exceptions import ValidationError
+            from agents.models import Agent
+
+            agent_id = self.request.data.get("agent")
+            if not agent_id:
+                raise ValidationError({"agent": "This field is required."})
+            try:
+                agent_obj = Agent.objects.get(id=agent_id)
+            except Agent.DoesNotExist:
+                raise ValidationError({"agent": "Invalid agent id."})
+            record = serializer.save(agent=agent_obj)
+        else:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only agents and admins can log distributions.")
+
         photo_hash = hash_photo(record.photo_url)
         flags, score = flag_anomalous_distribution(record, photo_hash)
         record.photo_hash = photo_hash

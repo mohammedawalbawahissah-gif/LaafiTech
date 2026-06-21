@@ -14,6 +14,7 @@ class User(AbstractUser):
         FUNDER = "funder", "Funder"
         ADMIN = "admin", "Admin"
         SUPERADMIN = "superadmin", "Superadmin"
+        COMMUNITY_USER = "community_user", "Community User"
 
     role = models.CharField(max_length=20, choices=Role.choices)
     phone_number = models.CharField(max_length=20, unique=True)

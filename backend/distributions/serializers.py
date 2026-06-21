@@ -24,7 +24,7 @@ class DistributionRecordSerializer(serializers.ModelSerializer):
             "ai_anomaly_flags", "ai_anomaly_score", "notes",
         ]
         read_only_fields = [
-            "id", "timestamp", "verification_status", "verified_by", "verified_at",
+            "id", "agent", "timestamp", "verification_status", "verified_by", "verified_at",
             "ai_anomaly_flags", "ai_anomaly_score", "photo_hash",
         ]
 

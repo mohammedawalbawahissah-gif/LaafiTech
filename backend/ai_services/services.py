@@ -219,6 +219,163 @@ EDUCATION_SYSTEM_PROMPT = (
 )
 
 
+# ---------------------------------------------------------------------------
+# 5. In-app platform assistant (Claude API, web/mobile, all roles)
+#
+# Distinct from ask_education_assistant above: that one is a fixed-prompt
+# SMS Q&A feature for end recipients. This one serves logged-in platform
+# users (agent/funder/admin) and tailors both the system prompt and the
+# injected context to the caller's role and *their own* data only -- it
+# reuses the same ownership scoping as the REST endpoints so the assistant
+# can never describe another funder's or agent's data.
+# ---------------------------------------------------------------------------
+
+PLATFORM_SYSTEM_PROMPTS = {
+    "agent": (
+        "You are the in-app assistant for a LaafiTech field agent using the "
+        "distribution platform. Help with questions about their own "
+        "deliveries, inventory, payouts, and how to use the app. Keep "
+        "answers short and practical. You only know what's in the CONTEXT "
+        "block below -- never invent figures. If asked about something "
+        "outside that context, say you don't have that information and "
+        "suggest checking with a LaafiTech admin."
+    ),
+    "funder": (
+        "You are the in-app assistant for a LaafiTech funder/partner "
+        "(NGO, CSR, or government program) using the impact dashboard. "
+        "Help them understand their own procurement orders and verified "
+        "impact data, and how to use the platform. You only know what's "
+        "in the CONTEXT block below, which reflects only this funder's "
+        "own orders -- never invent figures or reference other funders. "
+        "If asked about something outside that context, say so plainly."
+    ),
+    "admin": (
+        "You are the in-app assistant for a LaafiTech internal admin "
+        "managing agents, verification, and payouts. Help with operational "
+        "questions and how to use the platform. You only know what's in "
+        "the CONTEXT block below -- never invent figures. If asked about "
+        "something outside that context, say you don't have that "
+        "information rather than guessing."
+    ),
+    "community_user": (
+        "You are a friendly, accurate menstrual health education assistant "
+        "for girls and young women in Northern Ghana, used in-app (not "
+        "SMS, so you don't need to be terse -- give full, clear answers). "
+        "Be medically accurate, non-judgmental, and free of stigma or "
+        "shame. If a question suggests a medical concern needing "
+        "in-person care (e.g. severe pain, unusual bleeding), gently "
+        "recommend visiting a nearby health center or CHPS compound "
+        "rather than self-diagnosing. This user has no operational data "
+        "on the platform -- don't reference deliveries, payouts, or "
+        "agents; just answer their question."
+    ),
+}
+PLATFORM_SYSTEM_PROMPTS["superadmin"] = PLATFORM_SYSTEM_PROMPTS["admin"]
+
+
+def _build_platform_context(user) -> str:
+    """Builds a small, role-scoped data snapshot to ground the assistant's
+    answers. Deliberately lightweight (counts/totals, not raw records) to
+    keep the prompt small and avoid leaking unnecessary detail."""
+    role = user.role
+
+    if role == "agent":
+        from agents.models import Agent
+
+        agent = getattr(user, "agent_profile", None)
+        if agent is None:
+            return "No agent profile is linked to this account yet."
+        return (
+            f"Agent code: {agent.agent_code}\n"
+            f"Catchment area: {agent.catchment_area}\n"
+            f"Verification status: {agent.verification_status}\n"
+            f"Current stock balance: {agent.current_inventory_balance} units\n"
+            f"Lifetime distributed (verified): {agent.total_distributed_lifetime} units\n"
+        )
+
+    if role == "funder":
+        from funders.models import FunderOrganization, ProcurementOrder
+
+        try:
+            funder = FunderOrganization.objects.get(user=user)
+        except FunderOrganization.DoesNotExist:
+            return "No funder organization profile is linked to this account yet."
+        orders = ProcurementOrder.objects.filter(funder=funder)
+        total_orders = orders.count()
+        by_status = {}
+        for o in orders.values_list("status", flat=True):
+            by_status[o] = by_status.get(o, 0) + 1
+        return (
+            f"Funder organization: {funder.name}\n"
+            f"Total procurement orders placed: {total_orders}\n"
+            f"Orders by status: {by_status}\n"
+        )
+
+    if role in ("admin", "superadmin"):
+        from distributions.models import DistributionRecord
+        from payments.models import Payout
+
+        pending_verification = DistributionRecord.objects.filter(verification_status="pending").count()
+        pending_payouts = Payout.objects.filter(status="pending").count()
+        return (
+            f"Records pending verification: {pending_verification}\n"
+            f"Payouts pending: {pending_payouts}\n"
+        )
+
+    if role == "community_user":
+        # Deliberately minimal -- this role has no operational data to
+        # scope, just a name so the assistant can greet them personally.
+        return f"User's first name: {user.first_name or 'there'}\n"
+
+    return "No context available for this account's role."
+
+
+def ask_platform_assistant(user, conversation: list[dict]) -> str:
+    """
+    Multi-turn assistant for the in-app chat widget. `conversation` is a
+    list of {"role": "user"|"assistant", "content": "..."} messages (the
+    full visible thread, most recent last) -- the caller (the view) is
+    responsible for trimming history length before calling this.
+    """
+    role = getattr(user, "role", None)
+    system_prompt = PLATFORM_SYSTEM_PROMPTS.get(role)
+    if system_prompt is None:
+        return "This account's role doesn't have an assistant configured."
+
+    if not settings.ANTHROPIC_API_KEY:
+        return "The assistant isn't fully set up yet -- please contact a LaafiTech admin."
+
+    context = _build_platform_context(user)
+    full_system_prompt = f"{system_prompt}\n\nCONTEXT:\n{context}"
+
+    messages = [{"role": m["role"], "content": m["content"]} for m in conversation if m.get("content")]
+    if not messages:
+        return "Ask me a question to get started."
+
+    try:
+        resp = requests.post(
+            ANTHROPIC_API_URL,
+            headers={
+                "x-api-key": settings.ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": settings.ANTHROPIC_MODEL,
+                "max_tokens": 400,
+                "system": full_system_prompt,
+                "messages": messages,
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        text_blocks = [b["text"] for b in data.get("content", []) if b.get("type") == "text"]
+        return "\n".join(text_blocks).strip() or "Sorry, please try asking again."
+    except requests.RequestException:
+        return "Sorry, the assistant is temporarily unavailable. Please try again shortly."
+
+
 def ask_education_assistant(question: str) -> str:
     """Single-turn Q&A for the USSD/SMS education feature. Each message is
     stateless by design to keep USSD session handling simple."""

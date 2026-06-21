@@ -7,10 +7,25 @@ from .models import FunderOrganization, ProcurementOrder
 from .serializers import FunderOrganizationSerializer, ProcurementOrderSerializer
 
 
+class IsAdminOrOwningFunder(permissions.BasePermission):
+    """Admins manage all funder orgs; a funder may only view/edit their own."""
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.role in ("admin", "superadmin"):
+            return True
+        return obj.user_id == request.user.id
+
+
 class FunderOrganizationViewSet(viewsets.ModelViewSet):
     queryset = FunderOrganization.objects.all()
     serializer_class = FunderOrganizationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrOwningFunder]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.role in ("admin", "superadmin"):
+            return qs
+        return qs.filter(user=self.request.user)
 
 
 class ProcurementOrderViewSet(viewsets.ModelViewSet):
@@ -21,9 +36,14 @@ class ProcurementOrderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.role == "funder":
+        role = self.request.user.role
+        if role == "funder":
             return qs.filter(funder__user=self.request.user)
-        return qs
+        if role in ("admin", "superadmin"):
+            return qs
+        # Any other role (e.g. agent) has no business in funder procurement
+        # data -- previously this fell through to the unfiltered queryset.
+        return qs.none()
 
     @action(detail=True, methods=["post"], url_path="generate-report")
     def generate_report(self, request, pk=None):

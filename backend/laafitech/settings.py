@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "payments",
     "ai_services",
     "reports",
+    "community",
 ]
 
 MIDDLEWARE = [
@@ -133,7 +134,11 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
-CORS_ALLOWED_ORIGINS = [o for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o]
+_default_cors_origins = "http://localhost:5173,http://127.0.0.1:5173"
+CORS_ALLOWED_ORIGINS = [
+    o for o in os.environ.get("CORS_ALLOWED_ORIGINS", _default_cors_origins).split(",") if o
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # --- Third-party integrations ----------------------------------------------
 
@@ -158,3 +163,13 @@ HUBTEL_MERCHANT_ACCOUNT_NUMBER = os.environ.get("HUBTEL_MERCHANT_ACCOUNT_NUMBER"
 # Anthropic (Claude API) - impact narratives + education assistant
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+
+# Shared secret the USSD/SMS/WhatsApp gateway must send in the
+# X-Gateway-Secret header to call /api/ai/ask/ without a user login.
+# Leave unset in dev to disable gateway access entirely (fails closed).
+AI_GATEWAY_SECRET = os.environ.get("AI_GATEWAY_SECRET", "")
+
+# Code that must be supplied to self-register as role="admin" via
+# POST /api/auth/register/. Leave unset in dev/staging to disable admin
+# self-registration entirely (fails closed) -- see accounts/serializers.py.
+ADMIN_INVITE_CODE = os.environ.get("ADMIN_INVITE_CODE", "")
