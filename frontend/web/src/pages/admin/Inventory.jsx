@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 export default function Inventory() {
   const [batches, setBatches] = useState([]);
@@ -39,6 +40,15 @@ export default function Inventory() {
 
       {showForm && (
         <form className="card" style={{ marginBottom: 20 }} onSubmit={submit}>
+          <div className="card-title">
+            <div className="icon-badge icon-badge-coral">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z" />
+                <path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9" />
+              </svg>
+            </div>
+            <h3>New production batch</h3>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div className="field">
               <label>Batch code</label>
@@ -63,7 +73,17 @@ export default function Inventory() {
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
-      {!loading && (
+      {!loading && batches.length === 0 && (
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No batches logged yet</h3>
+            <p>Log a production batch above to start tracking inventory.</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && batches.length > 0 && (
         <div className="card" style={{ padding: 0 }}>
           <table>
             <thead>
@@ -87,7 +107,6 @@ export default function Inventory() {
                   <td style={{ textTransform: "capitalize" }}>{b.status.replace("_", " ")}</td>
                 </tr>
               ))}
-              {batches.length === 0 && <tr><td colSpan={6} className="empty-state">No batches logged yet.</td></tr>}
             </tbody>
           </table>
         </div>

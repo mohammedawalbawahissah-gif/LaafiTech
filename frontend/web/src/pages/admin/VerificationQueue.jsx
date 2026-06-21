@@ -4,6 +4,7 @@ import StatusBadge from "../../components/StatusBadge";
 import EvidenceStamp from "../../components/EvidenceStamp";
 import AnomalyFlags from "../../components/AnomalyFlags";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 export default function VerificationQueue() {
   const [records, setRecords] = useState([]);
@@ -42,9 +43,12 @@ export default function VerificationQueue() {
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
       {!loading && records.length === 0 && (
-        <div className="card empty-state">
-          <h3>Queue is clear</h3>
-          <p>No pending or flagged distribution records right now.</p>
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>Queue is clear</h3>
+            <p>No pending or flagged distribution records right now.</p>
+          </div>
         </div>
       )}
 

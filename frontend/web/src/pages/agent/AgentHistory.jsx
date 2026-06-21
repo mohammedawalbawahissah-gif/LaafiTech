@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 function badgeClass(status) {
   if (status === "verified") return "badge-verified";
@@ -30,6 +31,13 @@ export default function AgentHistory() {
       />
 
       <div className="card" style={{ padding: 0 }}>
+        {!loading && records.length === 0 ? (
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No distributions logged yet</h3>
+            <p>Records you log will appear here, most recent first.</p>
+          </div>
+        ) : (
         <table>
           <thead>
             <tr>
@@ -58,11 +66,9 @@ export default function AgentHistory() {
                 <td><span className={`badge ${badgeClass(r.verification_status)}`}>{r.verification_status}</span></td>
               </tr>
             ))}
-            {!loading && records.length === 0 && (
-              <tr><td colSpan={6} className="empty-state">No distributions logged yet.</td></tr>
-            )}
           </tbody>
         </table>
+        )}
       </div>
     </>
   );

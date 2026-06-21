@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 export default function Agents() {
   const [agents, setAgents] = useState([]);
@@ -46,7 +47,17 @@ export default function Agents() {
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
-      {!loading && (
+      {!loading && agents.length === 0 && (
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No agents yet</h3>
+            <p>Agents who sign up will appear here for verification.</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && agents.length > 0 && (
         <div className="card" style={{ padding: 0 }}>
           <table>
             <thead>
@@ -95,9 +106,6 @@ export default function Agents() {
                   </tr>
                 );
               })}
-              {agents.length === 0 && (
-                <tr><td colSpan={8} className="empty-state">No agents yet.</td></tr>
-              )}
             </tbody>
           </table>
         </div>

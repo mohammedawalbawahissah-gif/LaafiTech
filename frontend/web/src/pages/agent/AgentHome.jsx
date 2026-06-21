@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import StatCard from "../../components/StatCard";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AgentHome() {
@@ -35,27 +36,34 @@ export default function AgentHome() {
       />
 
       {!loading && agent && agent.verification_status !== "verified" && (
-        <div className="card" style={{ background: "var(--surface-sunken)", borderColor: "var(--line)", marginBottom: 16 }}>
-          <strong>Your account is {agent.verification_status}.</strong>
-          <p className="sub" style={{ marginTop: 4 }}>
+        <div className="banner banner-info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+            <circle cx="12" cy="12" r="8.5" />
+            <path d="M12 11v5.5" />
+          </svg>
+          <div>
+            <strong>Your account is {agent.verification_status}.</strong>{" "}
             A LaafiTech admin needs to verify your account before you can log distributions or
             receive inventory. This usually doesn't take long — check back soon.
-          </p>
+          </div>
         </div>
       )}
 
       <div className="stat-grid">
-        <StatCard label="Stock balance" value={loading ? "—" : agent?.current_inventory_balance ?? 0} sub="Units on hand" />
-        <StatCard label="Today's logs" value={loading ? "—" : todayCount} sub="Distributions logged today" />
+        <StatCard label="Stock balance" value={loading ? "—" : agent?.current_inventory_balance ?? 0} sub="Units on hand" icon="inventory" />
+        <StatCard label="Today's logs" value={loading ? "—" : todayCount} sub="Distributions logged today" icon="log" />
         <StatCard
           label="Lifetime distributed"
           value={loading ? "—" : agent?.total_distributed_lifetime ?? 0}
           sub="Verified units, all time"
+          icon="history"
         />
         <StatCard
           label="Agent status"
           value={loading ? "—" : agent?.verification_status ?? "—"}
           sub="Set by LaafiTech admin"
+          icon="agents"
+          dark
         />
       </div>
 
@@ -76,15 +84,5 @@ export default function AgentHome() {
         )}
       </div>
     </>
-  );
-}
-
-function StatCard({ label, value, sub }) {
-  return (
-    <div className="card stat-card">
-      <div className="label">{label}</div>
-      <div className="value mono" style={{ textTransform: "capitalize" }}>{value}</div>
-      <div className="sub">{sub}</div>
-    </div>
   );
 }

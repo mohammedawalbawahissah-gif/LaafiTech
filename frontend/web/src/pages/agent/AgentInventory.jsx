@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import StatCard from "../../components/StatCard";
+import BloomMark from "../../components/BloomMark";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AgentInventory() {
@@ -49,12 +51,8 @@ export default function AgentInventory() {
         accent="coral"
       />
 
-      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
-        <div className="card stat-card">
-          <div className="label">Current balance</div>
-          <div className="value mono">{agent?.current_inventory_balance ?? 0}</div>
-          <div className="sub">units on hand</div>
-        </div>
+      <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <StatCard label="Current balance" value={agent?.current_inventory_balance ?? 0} sub="units on hand" icon="inventory" />
         <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <button className="btn btn-primary" onClick={requestRestock} disabled={requesting}>
             {requesting ? "Sending..." : "Request restock"}
@@ -63,33 +61,40 @@ export default function AgentInventory() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        <table>
-          <thead>
-            <tr>
-              <th>Batch</th>
-              <th>Allocated</th>
-              <th>Remaining</th>
-              <th>Date</th>
-              <th>Restock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allocations.map((a) => (
-              <tr key={a.id}>
-                <td>#{a.batch}</td>
-                <td className="mono">{a.quantity_allocated}</td>
-                <td className="mono">{a.quantity_remaining}</td>
-                <td>{new Date(a.allocation_date).toLocaleDateString()}</td>
-                <td>{a.restock_requested && <span className="badge badge-pending">requested</span>}</td>
+      {!loading && allocations.length === 0 ? (
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No allocations yet</h3>
+            <p>Stock allocated to you by a LaafiTech admin will show up here.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Batch</th>
+                <th>Allocated</th>
+                <th>Remaining</th>
+                <th>Date</th>
+                <th>Restock</th>
               </tr>
-            ))}
-            {!loading && allocations.length === 0 && (
-              <tr><td colSpan={5} className="empty-state">No allocations yet.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {allocations.map((a) => (
+                <tr key={a.id}>
+                  <td>#{a.batch}</td>
+                  <td className="mono">{a.quantity_allocated}</td>
+                  <td className="mono">{a.quantity_remaining}</td>
+                  <td>{new Date(a.allocation_date).toLocaleDateString()}</td>
+                  <td>{a.restock_requested && <span className="badge badge-pending">requested</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }

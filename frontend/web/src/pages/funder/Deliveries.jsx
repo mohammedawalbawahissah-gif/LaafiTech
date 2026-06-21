@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
 import EvidenceStamp from "../../components/EvidenceStamp";
+import BloomMark from "../../components/BloomMark";
 
 export default function Deliveries() {
   const [records, setRecords] = useState([]);
@@ -33,9 +34,12 @@ export default function Deliveries() {
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
       {!loading && records.length === 0 && (
-        <div className="card empty-state">
-          <h3>No verified deliveries found</h3>
-          <p>Try a different district, or check back as more are verified.</p>
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No verified deliveries found</h3>
+            <p>Try a different district, or check back as more are verified.</p>
+          </div>
         </div>
       )}
 

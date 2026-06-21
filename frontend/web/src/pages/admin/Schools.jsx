@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import client from "../../api/client";
 import { GHANA_REGIONS, districtsFor } from "../../data/ghanaRegions";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 const EMPTY_FORM = {
   name: "",
@@ -88,6 +89,15 @@ export default function Schools() {
 
       {showForm && (
         <form className="card" style={{ marginBottom: 20 }} onSubmit={submit}>
+          <div className="card-title">
+            <div className="icon-badge icon-badge-coral">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3.5 21 8l-9 4.5L3 8z" />
+                <path d="M6.5 10.3v5.6c0 1.6 2.5 3.1 5.5 3.1s5.5-1.5 5.5-3.1v-5.6M21 8v6" />
+              </svg>
+            </div>
+            <h3>New school</h3>
+          </div>
           {error && <div className="auth-error" style={{ marginBottom: 12 }}>{error}</div>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div className="field">
@@ -147,7 +157,17 @@ export default function Schools() {
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
-      {!loading && (
+      {!loading && ranking.length === 0 && (
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No schools added yet</h3>
+            <p>Add a school above to see its explainable need-priority score.</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && ranking.length > 0 && (
         <div className="card" style={{ padding: 0 }}>
           <table>
             <thead>
@@ -173,7 +193,6 @@ export default function Schools() {
                   <td className="mono">{r.factors.population_scale}</td>
                 </tr>
               ))}
-              {ranking.length === 0 && <tr><td colSpan={7} className="empty-state">No schools added yet.</td></tr>}
             </tbody>
           </table>
         </div>

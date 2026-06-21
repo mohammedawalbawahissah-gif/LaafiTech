@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -36,21 +37,32 @@ export default function Orders() {
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
       {!loading && orders.length === 0 && (
-        <div className="card empty-state">
-          <h3>No orders yet</h3>
-          <p>Procure a delivery to a school to see it appear here.</p>
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" color="#e8604c" />
+            <h3>No orders yet</h3>
+            <p>Procure a delivery to a school to see it appear here.</p>
+          </div>
         </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {orders.map((o) => (
           <div className="card" key={o.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-              <div>
-                <h3 style={{ fontSize: 16 }}>{o.target_school_name}</h3>
-                <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 0" }}>
-                  {o.quantity_requested} units · GHS {o.total_amount}
-                </p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 16 }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div className="icon-badge icon-badge-coral">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="3.5" width="14" height="17" rx="2" />
+                    <path d="M9 8h6M9 12h6M9 16h3.5" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 16, fontFamily: "var(--font-display)", margin: 0 }}>{o.target_school_name}</h3>
+                  <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 0" }}>
+                    {o.quantity_requested} units · GHS {o.total_amount}
+                  </p>
+                </div>
               </div>
               <span className={`badge badge-${o.status === "completed" ? "verified" : o.status === "pending_payment" ? "pending" : "rejected"}`}>
                 {o.status.replace("_", " ")}

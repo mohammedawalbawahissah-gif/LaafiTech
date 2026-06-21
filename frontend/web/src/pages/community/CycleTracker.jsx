@@ -3,7 +3,6 @@ import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
 import BloomDial from "../../components/BloomDial";
 import BloomMark from "../../components/BloomMark";
-import NavIcon from "../../components/NavIcon";
 
 export default function CycleTracker() {
   const [logs, setLogs] = useState([]);
@@ -55,8 +54,6 @@ export default function CycleTracker() {
     }
   };
 
-  const hasPrediction = !loading && prediction?.available;
-
   return (
     <>
       <PageHeader
@@ -66,42 +63,48 @@ export default function CycleTracker() {
         accent="pink"
       />
 
-      {/* Always show the dial -- ghost-petalled and dashed when there isn't
-          enough history yet, so the page never reads as visually empty. */}
-      <div className="card dial-card" style={{ marginBottom: 20 }}>
-        <BloomDial
-          day={hasPrediction ? prediction.current_cycle_day : null}
-          totalDays={hasPrediction ? prediction.average_cycle_length_days : 28}
-          label={
-            hasPrediction
-              ? new Date(prediction.next_predicted_start).toLocaleDateString(undefined, { month: "long", day: "numeric" })
-              : "Not enough data yet"
-          }
-          sublabel={hasPrediction ? "Estimated next period" : "Log a few cycles to unlock predictions"}
-        />
-        <div className="dial-meta">
-          {hasPrediction ? (
-            <p>
-              Average cycle: {prediction.average_cycle_length_days} days · Average period length: {prediction.average_period_length_days} days.
-              {prediction.disclaimer ? ` ${prediction.disclaimer}` : ""}
+      {/* The bloom dial always shows -- ghost petals before there's enough
+          history to predict, rather than the whole card disappearing. */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        {loading ? (
+          <p className="sub">Loading...</p>
+        ) : prediction?.available ? (
+          <>
+            <BloomDial
+              day={prediction.current_cycle_day}
+              totalDays={prediction.average_cycle_length_days}
+              label={new Date(prediction.next_predicted_start).toLocaleDateString(undefined, { month: "long", day: "numeric" })}
+              sublabel="Estimated next period"
+            />
+            <p className="sub" style={{ marginTop: 14 }}>
+              Average cycle: {prediction.average_cycle_length_days} days · Average period length: {prediction.average_period_length_days} days
             </p>
-          ) : (
-            <p>
-              {!loading && prediction?.reason
-                ? prediction.reason
-                : "Once you've logged two or three periods, LaafiTech can estimate your next one and show your current cycle day here."}
-            </p>
-          )}
-        </div>
+          </>
+        ) : (
+          <BloomDial
+            day={null}
+            totalDays={28}
+            label="Not enough history yet"
+            sublabel={prediction?.reason || "Log a few cycles to unlock predictions"}
+          />
+        )}
       </div>
 
       <div className="tracker-grid">
-        <form className="card entry-card" onSubmit={submit}>
-          <h3>
-            <span className="icon-badge"><NavIcon name="tracker" /></span>
-            Log a period
-          </h3>
-          {error && <div className="banner banner-error">{error}</div>}
+        <form className="card" onSubmit={submit}>
+          <div className="card-title">
+            <div className="icon-badge icon-badge-pink">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
+                <path d="M3.5 9h17M8 3v3M16 3v3" />
+              </svg>
+            </div>
+            <div>
+              <h3>Log a period</h3>
+              <p className="sub">Takes a few seconds — symptoms and notes are optional.</p>
+            </div>
+          </div>
+          {error && <div className="auth-error" style={{ marginBottom: 12 }}>{error}</div>}
           <div className="field-row">
             <div className="field">
               <label>Started</label>
@@ -118,48 +121,54 @@ export default function CycleTracker() {
           </div>
           <div className="field">
             <label>Notes (optional)</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything you want to remember" rows={3} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything you want to remember" />
           </div>
-          <button className="btn btn-primary" disabled={saving} style={{ width: "100%" }}>
-            {saving ? "Saving..." : "Save entry"}
-          </button>
+          <button className="btn btn-primary" disabled={saving}>{saving ? "Saving..." : "Save entry"}</button>
         </form>
 
-        <div>
-          <div className="section-head" style={{ marginTop: 0 }}>
-            <h2>History</h2>
-            {!loading && <span className="count">{logs.length} {logs.length === 1 ? "entry" : "entries"}</span>}
+        <div className="card" style={{ padding: 0 }}>
+          <div style={{ padding: "20px 20px 0" }}>
+            <div className="card-title" style={{ marginBottom: 14 }}>
+              <div className="icon-badge icon-badge-pink">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12.5" r="8.2" />
+                  <path d="M12 7.8V12.5l3.4 2" />
+                </svg>
+              </div>
+              <div>
+                <h3>History</h3>
+                <p className="sub">{logs.length} entr{logs.length === 1 ? "y" : "ies"} logged</p>
+              </div>
+            </div>
           </div>
 
           {!loading && logs.length === 0 ? (
-            <div className="card empty-state">
-              <BloomMark size={40} />
+            <div className="empty-state-rich">
+              <BloomMark className="bloom-mark" />
               <h3>No entries yet</h3>
-              <p>Log your first period on the left and it'll show up here, ready to build toward a prediction.</p>
+              <p>Log your first period on the left to start building a personal prediction.</p>
             </div>
           ) : (
-            <div className="card" style={{ padding: 0 }}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Started</th>
-                    <th>Ended</th>
-                    <th>Symptoms</th>
-                    <th>Notes</th>
+            <table>
+              <thead>
+                <tr>
+                  <th>Started</th>
+                  <th>Ended</th>
+                  <th>Symptoms</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((l) => (
+                  <tr key={l.id}>
+                    <td>{l.period_start}</td>
+                    <td>{l.period_end || "—"}</td>
+                    <td>{l.symptoms || "—"}</td>
+                    <td>{l.notes || "—"}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {logs.map((l) => (
-                    <tr key={l.id}>
-                      <td className="mono">{l.period_start}</td>
-                      <td className="mono">{l.period_end || "—"}</td>
-                      <td>{l.symptoms || "—"}</td>
-                      <td>{l.notes || "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import BloomMark from "../../components/BloomMark";
 
 export default function Payouts() {
   const [payouts, setPayouts] = useState([]);
@@ -35,7 +36,17 @@ export default function Payouts() {
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
 
-      {!loading && (
+      {!loading && payouts.length === 0 && (
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No payouts yet</h3>
+            <p>Payouts appear here once verified distributions accrue earnings for agents.</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && payouts.length > 0 && (
         <div className="card" style={{ padding: 0 }}>
           <table>
             <thead>
@@ -65,7 +76,6 @@ export default function Payouts() {
                   </td>
                 </tr>
               ))}
-              {payouts.length === 0 && <tr><td colSpan={6} className="empty-state">No payouts yet.</td></tr>}
             </tbody>
           </table>
         </div>

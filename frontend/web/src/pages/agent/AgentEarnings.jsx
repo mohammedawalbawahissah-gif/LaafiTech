@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import StatCard from "../../components/StatCard";
+import BloomMark from "../../components/BloomMark";
 
 function badgeClass(status) {
   if (status === "completed") return "badge-verified";
@@ -32,42 +34,43 @@ export default function AgentEarnings() {
         accent="coral"
       />
 
-      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
-        <div className="card stat-card">
-          <div className="label">Pending</div>
-          <div className="value mono">GHS {pendingTotal.toFixed(2)}</div>
-        </div>
-        <div className="card stat-card">
-          <div className="label">Paid out</div>
-          <div className="value mono">GHS {paidTotal.toFixed(2)}</div>
-        </div>
+      <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <StatCard label="Pending" value={`GHS ${pendingTotal.toFixed(2)}`} icon="payouts" />
+        <StatCard label="Paid out" value={`GHS ${paidTotal.toFixed(2)}`} icon="earnings" dark />
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        <table>
-          <thead>
-            <tr>
-              <th>Amount</th>
-              <th>Period</th>
-              <th>Method</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payouts.map((p) => (
-              <tr key={p.id}>
-                <td className="mono">GHS {p.amount}</td>
-                <td>{p.period_start} → {p.period_end}</td>
-                <td style={{ textTransform: "capitalize" }}>{p.method?.replace("_", " ") || "—"}</td>
-                <td><span className={`badge ${badgeClass(p.status)}`}>{p.status}</span></td>
+      {!loading && payouts.length === 0 ? (
+        <div className="card">
+          <div className="empty-state-rich">
+            <BloomMark className="bloom-mark" />
+            <h3>No payouts yet</h3>
+            <p>Verified distributions will accrue earnings that show up here.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Amount</th>
+                <th>Period</th>
+                <th>Method</th>
+                <th>Status</th>
               </tr>
-            ))}
-            {!loading && payouts.length === 0 && (
-              <tr><td colSpan={4} className="empty-state">No payouts yet.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {payouts.map((p) => (
+                <tr key={p.id}>
+                  <td className="mono">GHS {p.amount}</td>
+                  <td>{p.period_start} → {p.period_end}</td>
+                  <td style={{ textTransform: "capitalize" }}>{p.method?.replace("_", " ") || "—"}</td>
+                  <td><span className={`badge ${badgeClass(p.status)}`}>{p.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }

@@ -48,6 +48,17 @@ export default function Procure() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 24 }}>
         <form className="card" onSubmit={handleSubmit}>
+          <div className="card-title">
+            <div className="icon-badge icon-badge-coral">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 4.5h2.4l1.1 11.6a2 2 0 0 0 2 1.9h8a2 2 0 0 0 2-1.7l1.3-7.8H6.1" />
+                <circle cx="9.5" cy="20" r="1.4" />
+                <circle cx="17" cy="20" r="1.4" />
+              </svg>
+            </div>
+            <h3>New procurement order</h3>
+          </div>
+
           {error && <div className="auth-error">{error}</div>}
           {checkoutUrl && <div className="narrative-block" style={{ marginBottom: 16 }}>{checkoutUrl}</div>}
 
@@ -62,13 +73,15 @@ export default function Procure() {
               ))}
             </select>
           </div>
-          <div className="field">
-            <label>Quantity</label>
-            <input required type="number" min="1" value={form.quantity_requested} onChange={(e) => setForm({ ...form, quantity_requested: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Unit price (GHS)</label>
-            <input required type="number" step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} />
+          <div className="field-row">
+            <div className="field">
+              <label>Quantity</label>
+              <input required type="number" min="1" value={form.quantity_requested} onChange={(e) => setForm({ ...form, quantity_requested: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Unit price (GHS)</label>
+              <input required type="number" step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} />
+            </div>
           </div>
           <div className="field">
             <label>Estimated total</label>
@@ -80,16 +93,28 @@ export default function Procure() {
         </form>
 
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>Highest-need schools</h3>
-          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 16 }}>
-            Ranked by an explainable need-priority score (poverty index, distance to market, absenteeism, population scale).
-          </p>
-          {sortedSchools.slice(0, 5).map((s) => (
-            <div key={s.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
-              <span style={{ fontSize: 14 }}>{s.name}</span>
-              <span className="mono" style={{ color: "var(--accent)", fontWeight: 600 }}>{ranking[s.id] ?? "—"}</span>
+          <div className="card-title">
+            <div className="icon-badge icon-badge-moss">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3.5 20.5h17" />
+                <rect x="5.5" y="13" width="3.4" height="7.5" rx="0.8" />
+                <rect x="10.3" y="8.5" width="3.4" height="12" rx="0.8" />
+                <rect x="15.1" y="4.5" width="3.4" height="16" rx="0.8" />
+              </svg>
+            </div>
+            <div>
+              <h3>Highest-need schools</h3>
+              <p className="sub" style={{ margin: 0 }}>Poverty index, distance to market, absenteeism, population scale.</p>
+            </div>
+          </div>
+          {sortedSchools.slice(0, 5).map((s, i) => (
+            <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
+              <span className="mono" style={{ fontSize: 12, color: "var(--ink-soft)", width: 16 }}>{i + 1}</span>
+              <span style={{ fontSize: 14, flex: 1 }}>{s.name}</span>
+              <span className="mono" style={{ color: "var(--coral-dark)", fontWeight: 600 }}>{ranking[s.id] ?? "—"}</span>
             </div>
           ))}
+          {sortedSchools.length === 0 && <p className="sub">No schools added yet.</p>}
         </div>
       </div>
     </>

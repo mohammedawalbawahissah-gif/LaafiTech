@@ -4,6 +4,7 @@ import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import BloomDial from "../../components/BloomDial";
+import NavIcon from "../../components/NavIcon";
 
 export default function CommunityHome() {
   const { user } = useAuth();
@@ -43,16 +44,25 @@ export default function CommunityHome() {
           </>
         )}
         {!loading && prediction && !prediction.available && (
-          <>
-            <div className="label">Cycle tracker</div>
-            <p className="sub" style={{ marginTop: 6 }}>{prediction.reason}</p>
-          </>
+          <BloomDial day={null} totalDays={28} label="Not enough history yet" sublabel={prediction.reason} />
         )}
       </div>
 
-      <div className="card" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        <Link to="/community/tracker" className="btn btn-primary">Log or view my cycle</Link>
-        <Link to="/community/shop" className="btn btn-ghost">Visit the shop</Link>
+      <div className="card" style={{ display: "flex", gap: 14, padding: 8 }}>
+        <Link to="/community/tracker" className="card" style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, textDecoration: "none", boxShadow: "none", border: "1px solid var(--line)" }}>
+          <div className="icon-badge icon-badge-pink"><NavIcon name="tracker" /></div>
+          <div>
+            <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>Cycle tracker</div>
+            <div className="sub" style={{ margin: 0 }}>Log or view your cycle</div>
+          </div>
+        </Link>
+        <Link to="/community/shop" className="card" style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, textDecoration: "none", boxShadow: "none", border: "1px solid var(--line)" }}>
+          <div className="icon-badge icon-badge-pink"><NavIcon name="shop" /></div>
+          <div>
+            <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>Shop</div>
+            <div className="sub" style={{ margin: 0 }}>Order more products</div>
+          </div>
+        </Link>
       </div>
     </>
   );

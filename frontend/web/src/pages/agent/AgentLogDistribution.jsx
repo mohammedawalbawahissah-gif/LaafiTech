@@ -119,6 +119,15 @@ export default function AgentLogDistribution() {
       {error && <div className="auth-error" style={{ marginBottom: 16 }}>{error}</div>}
 
       <form className="card" onSubmit={handleSubmit} style={{ maxWidth: 560 }}>
+        <div className="card-title">
+          <div className="icon-badge icon-badge-coral">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4.5" y="3.5" width="15" height="17" rx="2" />
+              <path d="M9 8.5h6M12 13v3.5M10.3 14.7h3.4" />
+            </svg>
+          </div>
+          <h3>Distribution details</h3>
+        </div>
         <div className="field">
           <label htmlFor="recipient_type">Recipient type</label>
           <select id="recipient_type" value={recipientType} onChange={(e) => setRecipientType(e.target.value)}>
