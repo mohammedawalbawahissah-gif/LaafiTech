@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
 import BloomDial from "../../components/BloomDial";
+import BloomMark from "../../components/BloomMark";
+import NavIcon from "../../components/NavIcon";
 
 export default function CycleTracker() {
   const [logs, setLogs] = useState([]);
@@ -53,6 +55,8 @@ export default function CycleTracker() {
     }
   };
 
+  const hasPrediction = !loading && prediction?.available;
+
   return (
     <>
       <PageHeader
@@ -62,68 +66,102 @@ export default function CycleTracker() {
         accent="pink"
       />
 
-      {!loading && prediction?.available && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <BloomDial
-            day={prediction.current_cycle_day}
-            totalDays={prediction.average_cycle_length_days}
-            label={new Date(prediction.next_predicted_start).toLocaleDateString(undefined, { month: "long", day: "numeric" })}
-            sublabel="Estimated next period"
-          />
-          <p className="sub" style={{ marginTop: 14 }}>
-            Average cycle: {prediction.average_cycle_length_days} days · Average period length: {prediction.average_period_length_days} days
-          </p>
+      {/* Always show the dial -- ghost-petalled and dashed when there isn't
+          enough history yet, so the page never reads as visually empty. */}
+      <div className="card dial-card" style={{ marginBottom: 20 }}>
+        <BloomDial
+          day={hasPrediction ? prediction.current_cycle_day : null}
+          totalDays={hasPrediction ? prediction.average_cycle_length_days : 28}
+          label={
+            hasPrediction
+              ? new Date(prediction.next_predicted_start).toLocaleDateString(undefined, { month: "long", day: "numeric" })
+              : "Not enough data yet"
+          }
+          sublabel={hasPrediction ? "Estimated next period" : "Log a few cycles to unlock predictions"}
+        />
+        <div className="dial-meta">
+          {hasPrediction ? (
+            <p>
+              Average cycle: {prediction.average_cycle_length_days} days · Average period length: {prediction.average_period_length_days} days.
+              {prediction.disclaimer ? ` ${prediction.disclaimer}` : ""}
+            </p>
+          ) : (
+            <p>
+              {!loading && prediction?.reason
+                ? prediction.reason
+                : "Once you've logged two or three periods, LaafiTech can estimate your next one and show your current cycle day here."}
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
-      <form className="card" onSubmit={submit} style={{ maxWidth: 480, marginBottom: 20 }}>
-        <h3 style={{ marginTop: 0 }}>Log a period</h3>
-        {error && <div className="auth-error" style={{ marginBottom: 12 }}>{error}</div>}
-        <div className="field-row" style={{ display: "flex", gap: 16 }}>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Started</label>
-            <input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} required />
+      <div className="tracker-grid">
+        <form className="card entry-card" onSubmit={submit}>
+          <h3>
+            <span className="icon-badge"><NavIcon name="tracker" /></span>
+            Log a period
+          </h3>
+          {error && <div className="banner banner-error">{error}</div>}
+          <div className="field-row">
+            <div className="field">
+              <label>Started</label>
+              <input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label>Ended (optional)</label>
+              <input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
+            </div>
           </div>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Ended (optional)</label>
-            <input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
+          <div className="field">
+            <label>Symptoms (optional)</label>
+            <input value={symptoms} onChange={(e) => setSymptoms(e.target.value)} placeholder="e.g. cramps, fatigue" />
           </div>
-        </div>
-        <div className="field">
-          <label>Symptoms (optional)</label>
-          <input value={symptoms} onChange={(e) => setSymptoms(e.target.value)} placeholder="e.g. cramps, fatigue" />
-        </div>
-        <div className="field">
-          <label>Notes (optional)</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything you want to remember" />
-        </div>
-        <button className="btn btn-primary" disabled={saving}>{saving ? "Saving..." : "Save entry"}</button>
-      </form>
+          <div className="field">
+            <label>Notes (optional)</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything you want to remember" rows={3} />
+          </div>
+          <button className="btn btn-primary" disabled={saving} style={{ width: "100%" }}>
+            {saving ? "Saving..." : "Save entry"}
+          </button>
+        </form>
 
-      <div className="card" style={{ padding: 0 }}>
-        <table>
-          <thead>
-            <tr>
-              <th>Started</th>
-              <th>Ended</th>
-              <th>Symptoms</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((l) => (
-              <tr key={l.id}>
-                <td>{l.period_start}</td>
-                <td>{l.period_end || "—"}</td>
-                <td>{l.symptoms || "—"}</td>
-                <td>{l.notes || "—"}</td>
-              </tr>
-            ))}
-            {!loading && logs.length === 0 && (
-              <tr><td colSpan={4} className="empty-state">No entries yet — log your first period above.</td></tr>
-            )}
-          </tbody>
-        </table>
+        <div>
+          <div className="section-head" style={{ marginTop: 0 }}>
+            <h2>History</h2>
+            {!loading && <span className="count">{logs.length} {logs.length === 1 ? "entry" : "entries"}</span>}
+          </div>
+
+          {!loading && logs.length === 0 ? (
+            <div className="card empty-state">
+              <BloomMark size={40} />
+              <h3>No entries yet</h3>
+              <p>Log your first period on the left and it'll show up here, ready to build toward a prediction.</p>
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 0 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Started</th>
+                    <th>Ended</th>
+                    <th>Symptoms</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((l) => (
+                    <tr key={l.id}>
+                      <td className="mono">{l.period_start}</td>
+                      <td className="mono">{l.period_end || "—"}</td>
+                      <td>{l.symptoms || "—"}</td>
+                      <td>{l.notes || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

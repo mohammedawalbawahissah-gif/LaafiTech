@@ -126,6 +126,9 @@ const PATHS = {
       <path d="M15.5 16.5 20 12l-4.5-4.5M20 12H9" />
     </>
   ),
+  chevron: (
+    <path d="m9 5 7 7-7 7" />
+  ),
 };
 
 export default function NavIcon({ name, ...props }) {
