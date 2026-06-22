@@ -23,4 +23,6 @@ conn.close()
 print("Schema laafitech ready.")
 EOF
 
+python manage.py migrate auth
+python manage.py migrate contenttypes
 python manage.py migrate
