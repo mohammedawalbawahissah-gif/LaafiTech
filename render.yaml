@@ -1,0 +1,91 @@
+databases:
+  - name: laafitech-db
+    databaseName: laafitech
+    user: laafitech_admin
+    plan: free
+
+services:
+  # ── Django Backend ────────────────────────────────────────────────────────
+  - type: web
+    name: laafitech-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: ./build.sh
+    startCommand: gunicorn laafitech.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+    plan: free
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DB_ENGINE
+        value: postgresql
+      - key: DB_NAME
+        fromDatabase:
+          name: laafitech-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: laafitech-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: laafitech-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: laafitech-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: laafitech-db
+          property: port
+      # ── Set these manually in the Render dashboard ──────────────────────
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://laafitech-frontend.onrender.com"
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MTN_MOMO_API_KEY
+        sync: false
+      - key: MTN_MOMO_API_USER
+        sync: false
+      - key: MTN_MOMO_SUBSCRIPTION_KEY
+        sync: false
+      - key: MTN_MOMO_ENV
+        value: sandbox
+      - key: MTN_MOMO_TARGET_ENV
+        value: sandbox
+      - key: HUBTEL_CLIENT_ID
+        sync: false
+      - key: HUBTEL_CLIENT_SECRET
+        sync: false
+      - key: HUBTEL_MERCHANT_ACCOUNT_NUMBER
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-6
+      - key: AI_GATEWAY_SECRET
+        sync: false
+      - key: ADMIN_INVITE_CODE
+        sync: false
+
+  # ── React Frontend (Static Site) ─────────────────────────────────────────
+  - type: web
+    name: laafitech-frontend
+    runtime: static
+    rootDir: frontend/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: "https://laafitech-backend.onrender.com/api"
