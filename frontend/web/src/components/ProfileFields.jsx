@@ -54,7 +54,7 @@ export default function ProfileFields({ showLocation = false }) {
 
   if (!editing) {
     return (
-      <div style={{ marginBottom: 18 }}>
+      <div style={{ marginBottom: 22 }}>
         <div className="field-row">
           <div>
             <div className="label">Email</div>
@@ -75,7 +75,7 @@ export default function ProfileFields({ showLocation = false }) {
   }
 
   return (
-    <form onSubmit={save} style={{ marginBottom: 18 }}>
+    <form onSubmit={save} style={{ marginBottom: 22 }}>
       {error && <div className="auth-error" style={{ marginBottom: 14 }}>{error}</div>}
       <div className="field-row">
         <div className="field">
