@@ -1,9 +1,3 @@
-databases:
-  - name: laafitech-db
-    databaseName: laafitech
-    user: laafitech_admin
-    plan: free
-
 services:
   # ── Django Backend ────────────────────────────────────────────────────────
   - type: web
@@ -23,25 +17,15 @@ services:
       - key: DB_ENGINE
         value: postgresql
       - key: DB_NAME
-        fromDatabase:
-          name: laafitech-db
-          property: database
+        value: farmasyst_db_dvgj
       - key: DB_USER
-        fromDatabase:
-          name: laafitech-db
-          property: user
+        value: farmasyst_db_dvgj_user
       - key: DB_PASSWORD
-        fromDatabase:
-          name: laafitech-db
-          property: password
+        sync: false
       - key: DB_HOST
-        fromDatabase:
-          name: laafitech-db
-          property: host
+        value: dpg-d8nje2rtqb8s73d8fju0-a
       - key: DB_PORT
-        fromDatabase:
-          name: laafitech-db
-          property: port
+        value: "5432"
       # ── Set these manually in the Render dashboard ──────────────────────
       - key: CORS_ALLOWED_ORIGINS
         value: "https://laafitech-frontend.onrender.com"
