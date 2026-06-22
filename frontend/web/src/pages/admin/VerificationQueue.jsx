@@ -73,7 +73,7 @@ export default function VerificationQueue() {
                   <td className="mono">{r.quantity}</td>
                   <td>{r.school_name || r.recipient_type}</td>
                   <td>
-                    <EvidenceStamp photoUrl={r.photo_url} lat={r.gps_lat} lng={r.gps_lng} timestamp={r.timestamp} />
+                    <EvidenceStamp photoUrl={r.photo_url} lat={r.gps_lat} lng={r.gps_lng} locationName={r.location_name} timestamp={r.timestamp} />
                   </td>
                   <td><AnomalyFlags flags={r.ai_anomaly_flags} /></td>
                   <td><StatusBadge status={r.verification_status} /></td>

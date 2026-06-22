@@ -554,3 +554,257 @@ tr:last-child td { border-bottom: none; }
 /* Ghost bloom dial -- shown before enough history exists, so the signature
    element is always present instead of vanishing when there's no prediction. */
 .bloom-dial-ghost-note { font-size: 12px; color: var(--ink-soft); margin-top: 4px; max-width: 220px; }
+
+/* ---- Location picker (Leaflet map + reverse-geocoded place name) -------- */
+.location-picker { display: flex; flex-direction: column; gap: 10px; }
+.location-picker-map {
+  width: 100%; height: 220px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.location-picker-name {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13.5px; color: var(--ink);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.location-picker-name svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: var(--coral-dark); }
+.location-picker-coords { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+
+
+/* ================================================================
+   MOBILE LAYOUT  (≤ 768 px)
+   ================================================================ */
+
+/* ---- Mobile top bar ------------------------------------------------ */
+.mobile-topbar {
+  display: none;
+}
+
+/* ---- Bottom tab bar ------------------------------------------------ */
+.bottom-tab-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* Hide desktop rail, collapse grid to single column */
+  .rail { display: none !important; }
+
+  .app-shell {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr;
+  }
+
+  /* Show mobile top bar */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--brand);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .mobile-topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-topbar-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: #e8ecf2;
+    letter-spacing: 0.01em;
+  }
+
+  .mobile-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Main content area — add bottom padding so content isn't hidden behind tab bar */
+  .main {
+    padding: 16px 16px 100px !important;
+    max-width: 100% !important;
+  }
+
+  /* ---- Bottom tab bar ------------------------------------------ */
+  .bottom-tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--brand);
+    border-top: 1px solid rgba(255,255,255,0.09);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    color: #7a90a8;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    padding: 6px 4px 4px;
+    min-width: 0;
+  }
+
+  .bottom-tab svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .bottom-tab span {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 54px;
+    text-align: center;
+  }
+
+  .bottom-tab:hover { color: #c7d2e0; }
+  .bottom-tab.active { color: var(--coral); }
+  .bottom-tab-more.active { color: var(--coral); }
+
+  /* ---- More sheet (slide-up drawer) ----------------------------- */
+  .more-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 60;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .more-sheet {
+    width: 100%;
+    background: var(--surface);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 16px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .more-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--line);
+    border-radius: 999px;
+    margin: 0 auto 14px;
+  }
+
+  .more-sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 24px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.12s ease;
+  }
+
+  .more-sheet-item svg {
+    width: 20px;
+    height: 20px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+  }
+
+  .more-sheet-item:hover { background: var(--surface-sunken); }
+  .more-sheet-item.active { color: var(--coral); }
+  .more-sheet-item.active svg { color: var(--coral); }
+
+  .more-sheet-logout {
+    color: var(--danger);
+    margin-top: 4px;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+  .more-sheet-logout svg { color: var(--danger); }
+
+  /* ---- Responsive grids ----------------------------------------- */
+
+  /* Stat grid: 2 cols on mobile instead of 4 */
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* Tracker 2-col → 1-col (already had 880px breakpoint, belt+suspenders) */
+  .tracker-grid { grid-template-columns: 1fr !important; }
+
+  /* Page header */
+  .page-header h1 { font-size: 21px !important; }
+  .page-header-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .topbar h1 { font-size: 21px; }
+
+  /* Auth card — full-width on small screens */
+  .auth-card {
+    width: 100% !important;
+    border-radius: var(--radius-md) !important;
+    padding: 28px 20px !important;
+  }
+
+  .auth-screen { padding: 20px 16px; align-items: flex-start; padding-top: 60px; }
+
+  /* Tables — horizontal scroll */
+  .card table, table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Cards — full width, reduced padding */
+  .card { padding: 14px; }
+
+  /* Value font size — smaller on mobile */
+  .value { font-size: 22px !important; }
+
+  /* Field rows stack on mobile */
+  .field-row { flex-direction: column; gap: 0; }
+
+  /* Role toggle — better tap targets */
+  .role-option { padding: 14px; }
+}
+
+/* Extra-small phones */
+@media (max-width: 380px) {
+  .stat-grid { grid-template-columns: 1fr !important; }
+  .bottom-tab span { display: none; }
+  .bottom-tab { gap: 0; padding-top: 10px; }
+}

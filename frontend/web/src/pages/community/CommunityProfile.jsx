@@ -1,5 +1,6 @@
 import { useAuth } from "../../context/AuthContext";
 import PageHeader from "../../components/PageHeader";
+import ProfileFields from "../../components/ProfileFields";
 
 export default function CommunityProfile() {
   const { user, logout } = useAuth();
@@ -24,8 +25,7 @@ export default function CommunityProfile() {
           </div>
         </div>
 
-        <div className="label">Email</div>
-        <p style={{ margin: "0 0 16px", fontSize: 14 }}>{user?.email || "—"}</p>
+        <ProfileFields />
 
         <div className="banner banner-info" style={{ marginBottom: 0 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">

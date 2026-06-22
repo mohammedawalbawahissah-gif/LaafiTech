@@ -1,13 +1,25 @@
 import { useEffect, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import { useAuth } from "../../context/AuthContext";
+
+const PAYMENT_METHODS = [
+  { value: "hubtel_checkout", label: "Card / Bank / MoMo (Hubtel)", hint: "Redirects to Hubtel checkout — supports all networks, cards, bank transfer" },
+  { value: "momo_prompt", label: "MTN MoMo (USSD prompt)", hint: "Sends a USSD approval prompt straight to your MTN number" },
+];
 
 export default function Procure() {
+  const { user } = useAuth();
   const [schools, setSchools] = useState([]);
   const [ranking, setRanking] = useState({});
-  const [form, setForm] = useState({ target_school: "", quantity_requested: "", unit_price: "3.00" });
+  const [form, setForm] = useState({
+    target_school: "",
+    quantity_requested: "",
+    unit_price: "3.00",
+    payment_method: "hubtel_checkout",
+    phone: "",
+  });
   const [submitting, setSubmitting] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -17,19 +29,47 @@ export default function Procure() {
       res.data.forEach((r) => (map[r.school_id] = r.score));
       setRanking(map);
     });
+    // Pre-fill phone from user profile
+    if (user?.phone_number) setForm((f) => ({ ...f, phone: user.phone_number }));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.payment_method === "momo_prompt" && !form.phone.trim()) {
+      setError("Enter your MTN MoMo phone number.");
+      return;
+    }
     setSubmitting(true);
     try {
-      const order = await client.post("/procurement-orders/", form);
-      // In production, redirect to order.data checkout flow (Hubtel Checkout
-      // initiation is triggered server-side on order confirmation).
-      setCheckoutUrl(`Order #${order.data.id} created — proceed to payment (Hubtel checkout) to confirm.`);
-    } catch {
-      setError("Couldn't create the order. Check the quantity and try again.");
+      const order = await client.post("/procurement-orders/", {
+        target_school: form.target_school,
+        quantity_requested: form.quantity_requested,
+        unit_price: form.unit_price,
+        payment_method: form.payment_method,
+      });
+
+      const payPayload = { return_url: `${window.location.origin}/funder/orders` };
+      if (form.payment_method === "momo_prompt") payPayload.phone = form.phone;
+
+      const payRes = await client.post(`/procurement-orders/${order.data.id}/pay/`, payPayload);
+
+      if (payRes.data.checkout_url) {
+        window.location.href = payRes.data.checkout_url;
+        return;
+      }
+      if (payRes.data.success) {
+        // MoMo prompt sent — redirect to Orders to watch status
+        window.location.href = "/funder/orders";
+        return;
+      }
+      setError("Order created, but starting payment failed. Retry from the Orders page.");
+    } catch (err) {
+      const detail = err.response?.data;
+      const msg = detail
+        ? (detail.detail || Object.entries(detail).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(" ") : v}`).join(" — "))
+        : "Couldn't create the order. Check the quantity and try again.";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -60,7 +100,6 @@ export default function Procure() {
           </div>
 
           {error && <div className="auth-error">{error}</div>}
-          {checkoutUrl && <div className="narrative-block" style={{ marginBottom: 16 }}>{checkoutUrl}</div>}
 
           <div className="field">
             <label>Target school</label>
@@ -73,6 +112,7 @@ export default function Procure() {
               ))}
             </select>
           </div>
+
           <div className="field-row">
             <div className="field">
               <label>Quantity</label>
@@ -83,12 +123,49 @@ export default function Procure() {
               <input required type="number" step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} />
             </div>
           </div>
+
           <div className="field">
             <label>Estimated total</label>
             <input disabled value={`GHS ${(Number(form.quantity_requested || 0) * Number(form.unit_price || 0)).toFixed(2)}`} />
           </div>
+
+          <div className="field">
+            <label>Payment method</label>
+            <div className="role-toggle">
+              {PAYMENT_METHODS.map((m) => (
+                <button
+                  key={m.value}
+                  type="button"
+                  className={`role-option${form.payment_method === m.value ? " active" : ""}`}
+                  onClick={() => setForm({ ...form, payment_method: m.value })}
+                >
+                  <span className="role-option-label">{m.label}</span>
+                  <span className="role-option-hint">{m.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {form.payment_method === "momo_prompt" && (
+            <div className="field">
+              <label>MTN MoMo phone number</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="e.g. 0244000000"
+                required
+              />
+              <p className="sub" style={{ marginTop: 4 }}>You'll receive a USSD prompt on this number to approve the payment.</p>
+            </div>
+          )}
+
           <button className="btn btn-primary" disabled={submitting}>
-            {submitting ? "Creating order..." : "Create procurement order"}
+            {submitting
+              ? "Creating order..."
+              : form.payment_method === "momo_prompt"
+              ? "Create order & send MoMo prompt"
+              : "Create order & pay via Hubtel"}
           </button>
         </form>
 

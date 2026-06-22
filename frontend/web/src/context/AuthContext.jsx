@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [agent, setAgent] = useState(null);
+  const [funder, setFunder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export function AuthProvider({ children }) {
       .then(async (res) => {
         setUser(res.data);
         if (res.data.role === "agent") await loadAgentProfile();
+        if (res.data.role === "funder") await loadFunderProfile();
       })
       .catch(() => localStorage.removeItem("laafitech_token"))
       .finally(() => setLoading(false));
@@ -34,11 +36,22 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const loadFunderProfile = async () => {
+    try {
+      const res = await client.get("/funder-organizations/");
+      const list = res.data.results ?? res.data;
+      setFunder(list[0] || null);
+    } catch {
+      setFunder(null);
+    }
+  };
+
   const login = async (phone_number, password) => {
     const res = await client.post("/auth/login/", { phone_number, password });
     localStorage.setItem("laafitech_token", res.data.token);
     setUser(res.data.user);
     if (res.data.user.role === "agent") await loadAgentProfile();
+    if (res.data.user.role === "funder") await loadFunderProfile();
     return res.data.user;
   };
 
@@ -51,6 +64,7 @@ export function AuthProvider({ children }) {
     const res = await client.post("/auth/register/", payload);
     localStorage.setItem("laafitech_token", res.data.token);
     setUser(res.data.user);
+    if (res.data.user.role === "funder") await loadFunderProfile();
     return res.data.user;
   };
 
@@ -58,10 +72,17 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("laafitech_token");
     setUser(null);
     setAgent(null);
+    setFunder(null);
+  };
+
+  const updateProfile = async (payload) => {
+    const res = await client.patch("/auth/me/", payload);
+    setUser(res.data);
+    return res.data;
   };
 
   return (
-    <AuthContext.Provider value={{ user, agent, loading, login, register, logout, refreshAgent: loadAgentProfile }}>
+    <AuthContext.Provider value={{ user, agent, funder, loading, login, register, logout, updateProfile, refreshAgent: loadAgentProfile, refreshFunder: loadFunderProfile }}>
       {children}
     </AuthContext.Provider>
   );

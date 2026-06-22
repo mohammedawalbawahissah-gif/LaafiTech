@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import LocationPicker from "../../components/LocationPicker";
 import { useAuth } from "../../context/AuthContext";
 
 const RECIPIENT_TYPES = [
@@ -17,11 +18,19 @@ const PAYMENT_TYPES = [
   { value: "free", label: "Free (funded)" },
 ];
 
-// Placeholder upload: in production this should perform an unsigned upload
-// directly to Cloudinary (see CLOUDINARY_URL on the backend) and return the
-// resulting secure_url. Mirrors the same placeholder used in the mobile app.
+/**
+ * Upload a photo file to the backend, which proxies to Cloudinary.
+ * Returns the secure Cloudinary URL on success, throws on failure.
+ */
 async function uploadPhoto(file) {
-  return URL.createObjectURL(file);
+  const formData = new FormData();
+  formData.append("photo", file);
+  const res = await client.post("/distributions/photo-upload/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  const url = res.data?.photo_url;
+  if (!url) throw new Error("No photo URL returned from upload.");
+  return url;
 }
 
 export default function AgentLogDistribution() {
@@ -35,31 +44,10 @@ export default function AgentLogDistribution() {
   const [paymentType, setPaymentType] = useState("cash");
   const [notes, setNotes] = useState("");
   const [location, setLocation] = useState(null);
-  const [locating, setLocating] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  const captureLocation = () => {
-    setError("");
-    if (!navigator.geolocation) {
-      setError("Your browser doesn't support location capture.");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocating(false);
-      },
-      () => {
-        setError("Couldn't get your location. Check browser permissions and try again.");
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 15000 }
-    );
-  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -77,7 +65,14 @@ export default function AgentLogDistribution() {
 
     setSubmitting(true);
     try {
-      const photoUrl = await uploadPhoto(photoFile);
+      let photoUrl;
+      try {
+        photoUrl = await uploadPhoto(photoFile);
+      } catch (uploadErr) {
+        setError("Photo upload failed — check your connection and try again.");
+        setSubmitting(false);
+        return;
+      }
 
       // Note: no `agent` field is sent — the backend forces this record
       // onto the logged-in agent's own profile server-side.
@@ -89,6 +84,7 @@ export default function AgentLogDistribution() {
         payment_type: paymentType,
         gps_lat: location.lat,
         gps_lng: location.lng,
+        location_name: location.name || "",
         photo_url: photoUrl,
         notes,
       });
@@ -164,22 +160,16 @@ export default function AgentLogDistribution() {
 
         <div className="field">
           <label>Location</label>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button type="button" className="btn btn-ghost" onClick={captureLocation} disabled={locating}>
-              {locating ? "Locating..." : location ? "Recapture location" : "Capture location"}
-            </button>
-            {location && (
-              <span className="sub mono">{location.lat.toFixed(4)}, {location.lng.toFixed(4)}</span>
-            )}
-          </div>
+          <LocationPicker value={location} onChange={setLocation} />
         </div>
 
         <div className="field">
           <label htmlFor="photo">Proof photo</label>
           {photoPreview && (
-            <img src={photoPreview} alt="Proof preview" style={{ width: 160, height: 160, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />
+            <img src={photoPreview} alt="Proof preview" style={{ width: 160, height: 160, objectFit: "cover", borderRadius: 8, marginBottom: 8, display: "block" }} />
           )}
-          <input id="photo" type="file" accept="image/*" onChange={handlePhotoChange} />
+          <input id="photo" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} />
+          <p className="sub" style={{ marginTop: 4 }}>Take a photo or choose from your gallery.</p>
         </div>
 
         <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} disabled={submitting}>

@@ -11,6 +11,12 @@ function badgeClass(status) {
   return "badge-rejected";
 }
 
+function methodLabel(method) {
+  if (method === "native_momo") return "MTN MoMo";
+  if (method === "hubtel") return "Hubtel";
+  return method?.replace(/_/g, " ") || "—";
+}
+
 export default function AgentEarnings() {
   const [payouts, setPayouts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +36,7 @@ export default function AgentEarnings() {
       <PageHeader
         eyebrow="Agent · Field Ops"
         title="My earnings"
-        description="Pending and completed payouts."
+        description="Pending and completed payouts — routed via MTN MoMo or Hubtel based on your network."
         accent="coral"
       />
 
@@ -55,6 +61,7 @@ export default function AgentEarnings() {
                 <th>Amount</th>
                 <th>Period</th>
                 <th>Method</th>
+                <th>Reference</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -63,7 +70,8 @@ export default function AgentEarnings() {
                 <tr key={p.id}>
                   <td className="mono">GHS {p.amount}</td>
                   <td>{p.period_start} → {p.period_end}</td>
-                  <td style={{ textTransform: "capitalize" }}>{p.method?.replace("_", " ") || "—"}</td>
+                  <td style={{ textTransform: "capitalize" }}>{methodLabel(p.method)}</td>
+                  <td className="mono" style={{ fontSize: 12, color: "var(--ink-soft)" }}>{p.provider_reference || "—"}</td>
                   <td><span className={`badge ${badgeClass(p.status)}`}>{p.status}</span></td>
                 </tr>
               ))}

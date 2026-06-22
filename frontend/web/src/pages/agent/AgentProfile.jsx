@@ -1,6 +1,7 @@
 import { useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
+import ProfileFields from "../../components/ProfileFields";
 import { useAuth } from "../../context/AuthContext";
 
 const NETWORKS = [
@@ -51,6 +52,8 @@ export default function AgentProfile() {
             <div className="sub" style={{ margin: 0 }}>{user?.phone_number} · {agent?.agent_code}</div>
           </div>
         </div>
+
+        <ProfileFields showLocation />
 
         <div className="field">
           <label>Mobile money network</label>

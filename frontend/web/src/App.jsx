@@ -11,11 +11,13 @@ import Agents from "./pages/admin/Agents";
 import Inventory from "./pages/admin/Inventory";
 import Payouts from "./pages/admin/Payouts";
 import Schools from "./pages/admin/Schools";
+import Products from "./pages/admin/Products";
 
 import ImpactOverview from "./pages/funder/ImpactOverview";
 import Deliveries from "./pages/funder/Deliveries";
 import Procure from "./pages/funder/Procure";
 import Orders from "./pages/funder/Orders";
+import FunderProfile from "./pages/funder/FunderProfile";
 
 import AgentHome from "./pages/agent/AgentHome";
 import AgentLogDistribution from "./pages/agent/AgentLogDistribution";
@@ -23,6 +25,7 @@ import AgentInventory from "./pages/agent/AgentInventory";
 import AgentEarnings from "./pages/agent/AgentEarnings";
 import AgentHistory from "./pages/agent/AgentHistory";
 import AgentProfile from "./pages/agent/AgentProfile";
+import AgentProducts from "./pages/agent/AgentProducts";
 
 import CommunityHome from "./pages/community/CommunityHome";
 import CycleTracker from "./pages/community/CycleTracker";
@@ -71,6 +74,7 @@ function AppRoutes() {
         <Route path="inventory" element={<Inventory />} />
         <Route path="payouts" element={<Payouts />} />
         <Route path="schools" element={<Schools />} />
+        <Route path="products" element={<Products />} />
       </Route>
 
       <Route
@@ -85,6 +89,7 @@ function AppRoutes() {
         <Route path="deliveries" element={<Deliveries />} />
         <Route path="procure" element={<Procure />} />
         <Route path="orders" element={<Orders />} />
+        <Route path="profile" element={<FunderProfile />} />
       </Route>
 
       <Route
@@ -100,6 +105,7 @@ function AppRoutes() {
         <Route path="inventory" element={<AgentInventory />} />
         <Route path="earnings" element={<AgentEarnings />} />
         <Route path="history" element={<AgentHistory />} />
+        <Route path="products" element={<AgentProducts />} />
         <Route path="profile" element={<AgentProfile />} />
       </Route>
 

@@ -83,7 +83,7 @@ export default function Agents() {
                     <td style={{ textTransform: "capitalize" }}>{a.payout_method.replace("_", " ")}</td>
                     <td className="mono">{a.current_inventory_balance}</td>
                     <td className="mono">{a.total_distributed_lifetime}</td>
-                    <td><span className={`badge badge-${a.verification_status === "verified" ? "verified" : "pending"}`}>{a.verification_status}</span></td>
+                    <td><span className={`badge badge-${a.verification_status === "verified" ? "verified" : a.verification_status === "suspended" ? "flagged" : "pending"}`}>{a.verification_status}</span></td>
                     <td style={{ display: "flex", gap: 8 }}>
                       {a.verification_status === "pending" && (
                         <button className="btn btn-primary" onClick={() => setStatus(a.id, "verified")}>Verify</button>
