@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+import cloudinary.models
 
 
 class CycleLog(models.Model):
@@ -33,7 +34,7 @@ class Product(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=20, choices=Category.choices, default=Category.PADS)
     price = models.DecimalField(max_digits=8, decimal_places=2, help_text="GHS")
-    image_url = models.URLField(blank=True)
+    image = cloudinary.models.CloudinaryField("image", blank=True, folder="laafitech/products")
     in_stock = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -11,10 +11,17 @@ class CycleLogSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
-        fields = ["id", "name", "description", "category", "price", "image_url", "in_stock", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        fields = ["id", "name", "description", "category", "price", "image", "image_url", "in_stock", "created_at"]
+        read_only_fields = ["id", "created_at", "image_url"]
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return obj.image.url
+        return ""
 
 
 class OrderSerializer(serializers.ModelSerializer):

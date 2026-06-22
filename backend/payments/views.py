@@ -71,7 +71,7 @@ class PayoutViewSet(viewsets.ModelViewSet):
         # Verified distributions not yet attached to any payout
         unpaid = DistributionRecord.objects.filter(
             verification_status=DistributionRecord.VerificationStatus.VERIFIED,
-            payout__isnull=True,
+            payouts__isnull=True,
         ).select_related("agent")
 
         if not unpaid.exists():
