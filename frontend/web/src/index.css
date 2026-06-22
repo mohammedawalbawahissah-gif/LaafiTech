@@ -386,7 +386,7 @@ tr:last-child td { border-bottom: none; }
 .field input, .field select, .field textarea {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: var(--surface);
 }
 .field input:focus, .field select:focus { border-color: var(--primary); }
