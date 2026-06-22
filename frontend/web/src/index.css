@@ -691,6 +691,11 @@ tr:last-child td { border-bottom: none; }
   .bottom-tab.active { color: var(--coral); }
   .bottom-tab-more.active { color: var(--coral); }
 
+  /* ---- Assistant widget — clear the bottom tab bar on mobile ---- */
+  .assistant-widget-root {
+    bottom: 80px !important; /* 60px tab bar + 20px breathing room */
+  }
+
   /* ---- More sheet (slide-up drawer) ----------------------------- */
   .more-sheet-backdrop {
     position: fixed;

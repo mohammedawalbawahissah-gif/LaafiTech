@@ -12,6 +12,7 @@ import Inventory from "./pages/admin/Inventory";
 import Payouts from "./pages/admin/Payouts";
 import Schools from "./pages/admin/Schools";
 import Products from "./pages/admin/Products";
+import AdminProfile from "./pages/admin/AdminProfile";
 
 import ImpactOverview from "./pages/funder/ImpactOverview";
 import Deliveries from "./pages/funder/Deliveries";
@@ -75,6 +76,7 @@ function AppRoutes() {
         <Route path="payouts" element={<Payouts />} />
         <Route path="schools" element={<Schools />} />
         <Route path="products" element={<Products />} />
+        <Route path="profile" element={<AdminProfile />} />
       </Route>
 
       <Route

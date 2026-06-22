@@ -43,7 +43,9 @@ export default function AssistantWidget({ role }) {
   };
 
   return (
-    <div style={{ position: "fixed", right: 24, bottom: 24, zIndex: 50 }}>
+    <div style={{ position: "fixed", right: 24, bottom: 24, zIndex: 50 }}
+      className="assistant-widget-root"
+    >
       {open && (
         <div
           style={{

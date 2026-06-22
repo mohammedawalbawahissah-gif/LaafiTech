@@ -12,6 +12,7 @@ const ADMIN_NAV = [
   { to: "/admin/products", label: "Products", icon: "shop", title: "Products" },
   { to: "/admin/payouts", label: "Payouts", icon: "payouts", title: "Payouts" },
   { to: "/admin/schools", label: "Schools", icon: "schools", title: "Schools & Need Scores" },
+  { to: "/admin/profile", label: "Profile", icon: "profile", title: "Profile" },
 ];
 
 const FUNDER_NAV = [
