@@ -7,8 +7,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { reverseGeocode } from "../utils/geocode";
 
 // Vite serves the default Leaflet marker images as bundled assets rather
-// than the relative paths Leaflet's CSS expects out of the box -- without
-// this, markers silently render as broken images.
+// than the relative paths Leaflet's CSS expects out of the box.
 const pinIcon = L.icon({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
@@ -19,11 +18,34 @@ const pinIcon = L.icon({
   shadowSize: [41, 41],
 });
 
+// Tile providers — ordered by Ghana/West Africa coverage quality.
+// Esri World Street Map has the best road-level detail for northern Ghana
+// with no API key required. CartoDB Positron is a clean fallback.
+const TILE_PROVIDERS = [
+  {
+    label: "Street",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles © Esri",
+    maxZoom: 20,
+  },
+  {
+    label: "Satellite",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles © Esri, Maxar, Earthstar Geographics",
+    maxZoom: 20,
+  },
+  {
+    label: "Light",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attribution: "© CartoDB",
+    maxZoom: 19,
+  },
+];
+
 /**
- * GPS capture + map preview + reverse-geocoded place name, replacing a bare
- * "5.5545, -0.1902" readout with something a reviewer can actually
- * recognize at a glance. Coordinates remain the source of truth and are
- * still shown (in mono, small) underneath the place name.
+ * GPS capture + map preview + reverse-geocoded place name.
+ * Uses Esri tiles by default — significantly better coverage in Ghana
+ * than the previous OpenStreetMap tile server.
  *
  * value:    { lat, lng, name } | null
  * onChange: (value) => void
@@ -32,10 +54,12 @@ export default function LocationPicker({ value, onChange }) {
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [error, setError] = useState("");
+  const [tileIdx, setTileIdx] = useState(0);
 
   const mapElRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
+  const tileLayerRef = useRef(null);
 
   const captureLocation = () => {
     setError("");
@@ -66,35 +90,51 @@ export default function LocationPicker({ value, onChange }) {
       {
         enableHighAccuracy: true,
         timeout: 20000,
-        maximumAge: 0,  // always get a fresh fix, never serve a stale cached position
+        maximumAge: 0,
       }
     );
   };
 
-  // Initialize the map once a coordinate exists.
+  // Initialize or update map when coordinates change.
   useEffect(() => {
     if (!value || !mapElRef.current) return;
 
+    const provider = TILE_PROVIDERS[tileIdx];
+
     if (!mapRef.current) {
       mapRef.current = L.map(mapElRef.current, {
-        zoomControl: false,
-        attributionControl: false,
-      }).setView([value.lat, value.lng], 16);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
+        zoomControl: true,
+        attributionControl: true,
+      }).setView([value.lat, value.lng], 17);
+
+      tileLayerRef.current = L.tileLayer(provider.url, {
+        maxZoom: provider.maxZoom,
+        attribution: provider.attribution,
       }).addTo(mapRef.current);
+
       markerRef.current = L.marker([value.lat, value.lng], { icon: pinIcon }).addTo(mapRef.current);
     } else {
-      mapRef.current.setView([value.lat, value.lng], 16);
+      mapRef.current.setView([value.lat, value.lng], 17);
       markerRef.current?.setLatLng([value.lat, value.lng]);
     }
 
-    // Leaflet sizes itself off the container at mount time; invalidate
-    // at multiple intervals to handle both CSS transitions and lazy layout.
     const t1 = setTimeout(() => mapRef.current?.invalidateSize(), 100);
     const t2 = setTimeout(() => mapRef.current?.invalidateSize(), 400);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [value]);
+
+  // Swap tile layer when provider changes.
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const provider = TILE_PROVIDERS[tileIdx];
+    if (tileLayerRef.current) {
+      mapRef.current.removeLayer(tileLayerRef.current);
+    }
+    tileLayerRef.current = L.tileLayer(provider.url, {
+      maxZoom: provider.maxZoom,
+      attribution: provider.attribution,
+    }).addTo(mapRef.current);
+  }, [tileIdx]);
 
   useEffect(() => () => mapRef.current?.remove(), []);
 
@@ -111,7 +151,31 @@ export default function LocationPicker({ value, onChange }) {
 
       {value && (
         <>
+          {/* Map type toggle */}
+          <div style={{ display: "flex", gap: 6, margin: "10px 0 6px" }}>
+            {TILE_PROVIDERS.map((p, i) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => setTileIdx(i)}
+                style={{
+                  fontSize: 11,
+                  padding: "3px 10px",
+                  borderRadius: 20,
+                  border: "1px solid var(--border)",
+                  background: tileIdx === i ? "var(--coral)" : "transparent",
+                  color: tileIdx === i ? "#fff" : "var(--text-secondary)",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
           <div className="location-picker-map" ref={mapElRef} />
+
           <div className="location-picker-name">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" />
