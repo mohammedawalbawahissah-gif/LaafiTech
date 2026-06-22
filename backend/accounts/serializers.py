@@ -29,6 +29,24 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "is_phone_verified"]
 
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """Self-service profile editing (PATCH /api/auth/me/).
+
+    Deliberately a *separate* serializer from UserSerializer rather than
+    just trimming read_only_fields on that one: UserSerializer's "role"
+    field is writable (by design, so admins can manage roles elsewhere),
+    and reusing it here for self-update would let any user PATCH their own
+    role and self-escalate to admin/superadmin. phone_number is also
+    excluded since it's the USERNAME_FIELD/login identifier and unique --
+    changing it is an account-recovery-sensitive operation, not a profile
+    edit.
+    """
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "region", "district"]
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     # Only required/checked when role == "admin"; never stored on the user.
@@ -121,6 +139,17 @@ class RegisterSerializer(serializers.ModelSerializer):
                     # verification_status defaults to PENDING on the model --
                     # never set explicitly here, so it can't be overridden
                     # by anything upstream.
+                )
+
+            if user.role == User.Role.FUNDER:
+                from funders.models import FunderOrganization
+                # Create a placeholder profile so the funder can immediately
+                # use the portal. They complete/edit the org name and type
+                # from the frontend profile setup screen (FunderSetup).
+                FunderOrganization.objects.create(
+                    user=user,
+                    name=user.get_full_name() or user.username,
+                    funder_type=FunderOrganization.FunderType.INDIVIDUAL_DONOR,
                 )
 
         return user

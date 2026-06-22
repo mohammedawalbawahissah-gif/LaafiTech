@@ -41,6 +41,7 @@ class PaymentTransaction(models.Model):
     class Direction(models.TextChoices):
         OUTBOUND_PAYOUT = "outbound_payout", "Outbound Agent Payout"
         INBOUND_PROCUREMENT = "inbound_procurement", "Inbound Funder Payment"
+        INBOUND_SHOP_ORDER = "inbound_shop_order", "Inbound Community Shop Payment"
 
     class Provider(models.TextChoices):
         MTN_MOMO = "mtn_momo", "MTN MoMo (native)"
@@ -51,6 +52,9 @@ class PaymentTransaction(models.Model):
     payout = models.ForeignKey(Payout, on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions")
     procurement_order = models.ForeignKey(
         "funders.ProcurementOrder", on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions"
+    )
+    shop_order = models.ForeignKey(
+        "community.Order", on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions"
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     provider_transaction_id = models.CharField(max_length=150, blank=True)

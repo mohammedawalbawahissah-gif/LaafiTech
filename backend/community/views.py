@@ -1,9 +1,12 @@
 from datetime import timedelta
 
+from django.urls import reverse
 from django.utils import timezone
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from payments import services as payment_services
 
 from .models import CycleLog, Order, Product
 from .serializers import CycleLogSerializer, OrderSerializer, ProductSerializer
@@ -17,6 +20,11 @@ class IsCommunityUser(permissions.BasePermission):
 class IsAdminRole(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role in ("admin", "superadmin")
+
+
+class IsAdminOrAgent(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ("admin", "superadmin", "agent")
 
 
 class CycleLogViewSet(viewsets.ModelViewSet):
@@ -76,14 +84,19 @@ class CycleLogViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    """Shop catalog. Anyone logged in can browse; only admins manage it."""
+    """Shop catalog. Anyone logged in can browse. Admins and agents can add
+    new products (agents are LaafiTech's field-facing reps and often know
+    what local demand looks like); only admins can edit or remove existing
+    listings, since that affects what's already live for community_users."""
 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ("create", "update", "partial_update", "destroy"):
+        if self.action == "create":
+            return [permissions.IsAuthenticated(), IsAdminOrAgent()]
+        if self.action in ("update", "partial_update", "destroy"):
             return [permissions.IsAuthenticated(), IsAdminRole()]
         return [permissions.IsAuthenticated()]
 
@@ -111,10 +124,63 @@ class OrderViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         product = serializer.validated_data["product"]
         quantity = serializer.validated_data.get("quantity", 1)
+        payment_method = serializer.validated_data.get("payment_method", Order.PaymentMethod.CASH_ON_DELIVERY)
+        # COD never goes through an online charge, so it starts at its own
+        # terminal-until-delivery status rather than the generic "pending"
+        # the other two methods use while waiting on the `pay` step.
+        initial_payment_status = (
+            Order.PaymentStatus.COLLECT_ON_DELIVERY
+            if payment_method == Order.PaymentMethod.CASH_ON_DELIVERY
+            else Order.PaymentStatus.PENDING
+        )
         serializer.save(
             user=self.request.user,
             total_price=product.price * quantity,
+            payment_status=initial_payment_status,
         )
+
+    @action(detail=True, methods=["post"])
+    def pay(self, request, pk=None):
+        """
+        POST /api/community/orders/{id}/pay/
+        Step 2 of the order-then-pay flow. momo_prompt pushes a native MTN
+        MoMo USSD approval prompt to the customer's phone; hubtel_checkout
+        returns a checkout_url the frontend should redirect to.
+        cash_on_delivery orders don't need this step at all -- calling it
+        just confirms that and returns early.
+
+        Body: {"phone": "0244..."} optional override of delivery_phone;
+        {"return_url": "https://..."} where Hubtel sends the browser back
+        after a hosted checkout completes.
+        """
+        order = self.get_object()
+        if order.user_id != request.user.id and request.user.role not in ("admin", "superadmin"):
+            return Response({"detail": "Not your order."}, status=403)
+
+        if order.payment_method == Order.PaymentMethod.CASH_ON_DELIVERY:
+            return Response({
+                "detail": "Cash on delivery -- no online payment needed.",
+                "payment_status": order.payment_status,
+            })
+
+        if order.payment_status == Order.PaymentStatus.PAID:
+            return Response({"detail": "Order already paid.", "payment_status": order.payment_status})
+
+        phone = request.data.get("phone") or order.delivery_phone
+        callback_url = request.build_absolute_uri(reverse("payment-webhook-momo"))
+        return_url = request.data.get("return_url", "")
+
+        result = payment_services.initiate_shop_order_payment(
+            order, phone=phone, callback_url=callback_url, return_url=return_url
+        )
+        order.refresh_from_db(fields=["payment_status", "payment_reference"])
+
+        response_data = {"success": bool(result.get("success")), "payment_status": order.payment_status}
+        if order.payment_method == Order.PaymentMethod.HUBTEL_CHECKOUT:
+            response_data["checkout_url"] = result.get("checkout_url")
+        if not result.get("success"):
+            response_data["error"] = result.get("error", "Payment initiation failed.")
+        return Response(response_data)
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated, IsAdminRole])
     def set_status(self, request, pk=None):
@@ -125,5 +191,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         if new_status not in valid:
             return Response({"detail": f"status must be one of {valid}."}, status=400)
         order.status = new_status
-        order.save(update_fields=["status"])
+        update_fields = ["status"]
+        # Cash physically changes hands at delivery -- marking a COD order
+        # fulfilled is the admin's confirmation that the cash was collected.
+        if (
+            new_status == Order.Status.FULFILLED
+            and order.payment_method == Order.PaymentMethod.CASH_ON_DELIVERY
+            and order.payment_status == Order.PaymentStatus.COLLECT_ON_DELIVERY
+        ):
+            order.payment_status = Order.PaymentStatus.PAID
+            update_fields.append("payment_status")
+        order.save(update_fields=update_fields)
         return Response(OrderSerializer(order).data)

@@ -4,7 +4,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import ProfileUpdateSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -48,8 +48,21 @@ class LoginView(APIView):
 
 
 class MeView(generics.RetrieveUpdateAPIView):
-    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user
+
+    def get_serializer_class(self):
+        # Writes go through ProfileUpdateSerializer (see its docstring for
+        # why role/phone_number/username are deliberately excluded there).
+        if self.request.method in ("PUT", "PATCH"):
+            return ProfileUpdateSerializer
+        return UserSerializer
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        # Respond with the full profile (including read-only fields like
+        # role/phone_number) so the frontend can refresh its user state
+        # from a single response shape, same as login/register.
+        return Response(UserSerializer(self.get_object()).data)

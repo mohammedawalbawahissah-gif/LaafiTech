@@ -61,8 +61,8 @@ def disburse(phone_number: str, amount: str, currency: str = "GHS", reason: str 
         return {"success": False, "reference_id": reference_id, "error": str(exc)}
 
 
-def request_to_pay(phone_number: str, amount: str, currency: str = "GHS", reason: str = "LaafiTech procurement payment") -> dict:
-    """Collections product -- request a funder to pay via MTN MoMo."""
+def request_to_pay(phone_number: str, amount: str, currency: str = "GHS", reason: str = "LaafiTech procurement payment", callback_url: str = "") -> dict:
+    """Collections product -- request a payer to pay via MTN MoMo USSD prompt."""
     reference_id = str(uuid.uuid4())
     payload = {
         "amount": amount,
@@ -72,11 +72,14 @@ def request_to_pay(phone_number: str, amount: str, currency: str = "GHS", reason
         "payerMessage": reason,
         "payeeNote": reason,
     }
+    extra_headers = {"X-Reference-Id": reference_id}
+    if callback_url:
+        extra_headers["X-Callback-Url"] = callback_url
     try:
         resp = requests.post(
             f"{BASE_URL}/collection/v1_0/requesttopay",
             json=payload,
-            headers=_headers("collection", {"X-Reference-Id": reference_id}),
+            headers=_headers("collection", extra_headers),
             timeout=15,
         )
         success = resp.status_code in (200, 202)

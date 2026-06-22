@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from accounts.serializers import UserSerializer
+from inventory.serializers import InventoryBatchSerializer
 from .models import Agent, AgentInventoryAllocation
 
 
@@ -22,7 +23,20 @@ class AgentSerializer(serializers.ModelSerializer):
 
 
 class AgentInventoryAllocationSerializer(serializers.ModelSerializer):
+    batch_detail = InventoryBatchSerializer(source="batch", read_only=True)
+    agent_code = serializers.CharField(source="agent.agent_code", read_only=True)
+    agent_name = serializers.SerializerMethodField()
+
     class Meta:
         model = AgentInventoryAllocation
-        fields = ["id", "agent", "batch", "quantity_allocated", "quantity_remaining", "allocation_date", "restock_requested"]
-        read_only_fields = ["id", "allocation_date"]
+        fields = [
+            "id", "agent", "agent_code", "agent_name",
+            "batch", "batch_detail",
+            "quantity_allocated", "quantity_remaining",
+            "allocation_date", "restock_requested", "restock_notes",
+        ]
+        read_only_fields = ["id", "allocation_date", "agent_code", "agent_name", "batch_detail"]
+
+    def get_agent_name(self, obj):
+        u = obj.agent.user
+        return u.get_full_name() or u.email

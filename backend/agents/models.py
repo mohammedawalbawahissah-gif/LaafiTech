@@ -67,6 +67,7 @@ class AgentInventoryAllocation(models.Model):
     quantity_remaining = models.PositiveIntegerField()
     allocation_date = models.DateTimeField(auto_now_add=True)
     restock_requested = models.BooleanField(default=False)
+    restock_notes = models.TextField(blank=True, help_text="Agent's note accompanying the restock request (e.g. quantity needed, reason).")
 
     def __str__(self):
         return f"{self.agent.agent_code} <- {self.quantity_allocated} units (batch {self.batch_id})"

@@ -47,13 +47,13 @@ class Product(models.Model):
 class Order(models.Model):
     """A community_user's request to purchase a Product.
 
-    Note: no live payment gateway call happens here, consistent with other
-    placeholder integration points elsewhere in this codebase (see the
-    photo upload placeholder on distribution records). The order is
-    recorded with the user's chosen payment intent; an admin marks it
-    fulfilled once payment/delivery is confirmed out-of-band (MoMo prompt,
-    cash on delivery, etc.) -- wiring a real MTN MoMo/Hubtel charge here is
-    a follow-up, not done silently.
+    Payment is a two-step order-then-pay flow (mirrors the FarmAsyst North
+    pattern): the order is created first with payment_status=pending, then
+    the frontend calls the `pay` action to actually trigger a charge via
+    payments.services.initiate_shop_order_payment(). cash_on_delivery skips
+    that online-charge step entirely -- payment_status goes straight to
+    collect_on_delivery and is only marked paid when an admin confirms the
+    cash was collected (see OrderViewSet.set_status).
     """
 
     class Status(models.TextChoices):
@@ -62,6 +62,18 @@ class Order(models.Model):
         FULFILLED = "fulfilled", "Fulfilled"
         CANCELLED = "cancelled", "Cancelled"
 
+    class PaymentMethod(models.TextChoices):
+        MOMO_PROMPT = "momo_prompt", "MTN MoMo Prompt"
+        HUBTEL_CHECKOUT = "hubtel_checkout", "Card / Bank / Other MoMo (Hubtel)"
+        CASH_ON_DELIVERY = "cash_on_delivery", "Cash on Delivery"
+
+    class PaymentStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PROCESSING = "processing", "Processing"
+        PAID = "paid", "Paid"
+        FAILED = "failed", "Failed"
+        COLLECT_ON_DELIVERY = "collect_on_delivery", "Collect on Delivery"
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders")
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orders")
     quantity = models.PositiveIntegerField(default=1)
@@ -69,6 +81,9 @@ class Order(models.Model):
     delivery_phone = models.CharField(max_length=20)
     delivery_location = models.CharField(max_length=200)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.CASH_ON_DELIVERY)
+    payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    payment_reference = models.CharField(max_length=150, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -65,6 +65,11 @@ class DistributionRecord(models.Model):
 
     gps_lat = models.DecimalField(max_digits=9, decimal_places=6)
     gps_lng = models.DecimalField(max_digits=9, decimal_places=6)
+    location_name = models.CharField(
+        max_length=255, blank=True,
+        help_text="Reverse-geocoded place name for gps_lat/gps_lng (e.g. 'Kumbungu, Northern Region'). "
+                   "Best-effort, set client-side at capture time -- coordinates remain the source of truth.",
+    )
     photo_url = models.URLField(help_text="Cloudinary URL of proof-of-distribution photo")
     photo_hash = models.CharField(
         max_length=64, blank=True, db_index=True,

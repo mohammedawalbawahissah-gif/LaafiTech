@@ -19,7 +19,7 @@ class DistributionRecordSerializer(serializers.ModelSerializer):
         fields = [
             "id", "agent", "agent_code", "recipient_type", "school", "school_name",
             "quantity", "unit_price", "payment_type",
-            "gps_lat", "gps_lng", "photo_url", "photo_hash",
+            "gps_lat", "gps_lng", "location_name", "photo_url", "photo_hash",
             "timestamp", "verification_status", "verified_by", "verified_at",
             "ai_anomaly_flags", "ai_anomaly_score", "notes",
         ]

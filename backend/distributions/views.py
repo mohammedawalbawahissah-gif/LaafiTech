@@ -1,7 +1,13 @@
+import os
+
+import cloudinary
+import cloudinary.uploader
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ai_services.services import flag_anomalous_distribution, hash_photo
 from .models import DistributionRecord, School
@@ -10,6 +16,12 @@ from .serializers import (
     DistributionVerifySerializer,
     SchoolSerializer,
 )
+
+
+def _get_cloudinary_config():
+    url = os.environ.get("CLOUDINARY_URL", "")
+    if url:
+        cloudinary.config(cloudinary_url=url)
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -29,11 +41,49 @@ class SchoolViewSet(viewsets.ModelViewSet):
     filterset_fields = ["district", "region"]
 
 
+class PhotoUploadView(APIView):
+    """
+    POST /api/distributions/photo-upload/
+    Accepts a multipart file field named `photo`, uploads it to Cloudinary,
+    and returns {\"photo_url\": \"https://res.cloudinary.com/...\"}. The
+    frontend posts the file here first, then includes the returned URL in
+    the distribution creation payload.
+
+    Falls back to a placeholder URL when CLOUDINARY_URL is not configured
+    (local dev without credentials) so the form is still exercisable.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        file_obj = request.FILES.get("photo")
+        if not file_obj:
+            return Response({"detail": "No photo file provided."}, status=400)
+
+        cloudinary_url = os.environ.get("CLOUDINARY_URL", "")
+        if not cloudinary_url:
+            # Dev fallback — return a placeholder that passes URLField
+            # validation so the rest of the form flow works locally.
+            return Response({"photo_url": "https://via.placeholder.com/400x300.png?text=dev-upload"})
+
+        try:
+            _get_cloudinary_config()
+            result = cloudinary.uploader.upload(
+                file_obj,
+                folder="laafitech/distributions",
+                resource_type="image",
+            )
+            return Response({"photo_url": result["secure_url"]})
+        except Exception as exc:
+            return Response({"detail": f"Upload failed: {exc}"}, status=502)
+
+
 class DistributionRecordViewSet(viewsets.ModelViewSet):
     queryset = DistributionRecord.objects.select_related("agent", "school").all().order_by("-timestamp")
     serializer_class = DistributionRecordSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filterset_fields = ["verification_status", "agent", "school", "payment_type"]
+    filterset_fields = ["verification_status", "agent", "school", "payment_type", "school__district"]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -122,11 +172,14 @@ class DistributionRecordViewSet(viewsets.ModelViewSet):
         serializer = DistributionVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        record.verification_status = serializer.validated_data["decision"]
+        decision = serializer.validated_data["decision"]
+        record.verification_status = decision
         record.verified_by = request.user
         record.verified_at = timezone.now()
         if serializer.validated_data.get("notes"):
             record.notes = serializer.validated_data["notes"]
+        # Signal guard: only fire inventory/payout side-effects on approval.
+        record._just_verified = (decision == "verified")
         record.save(update_fields=["verification_status", "verified_by", "verified_at", "notes"])
 
         return Response(DistributionRecordSerializer(record).data, status=status.HTTP_200_OK)

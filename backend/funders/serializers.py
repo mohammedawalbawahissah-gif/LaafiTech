@@ -7,7 +7,7 @@ class FunderOrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = FunderOrganization
         fields = ["id", "user", "name", "funder_type", "contact_person", "is_verified", "created_at"]
-        read_only_fields = ["id", "is_verified", "created_at"]
+        read_only_fields = ["id", "user", "is_verified", "created_at"]
 
 
 class ProcurementOrderSerializer(serializers.ModelSerializer):
@@ -19,10 +19,10 @@ class ProcurementOrderSerializer(serializers.ModelSerializer):
         fields = [
             "id", "funder", "funder_name", "target_school", "target_school_name",
             "quantity_requested", "unit_price", "total_amount", "status",
-            "linked_distribution_records", "payment_reference", "impact_narrative",
-            "created_at", "completed_at",
+            "payment_method", "linked_distribution_records", "payment_reference",
+            "impact_narrative", "created_at", "completed_at",
         ]
         read_only_fields = [
-            "id", "total_amount", "status", "linked_distribution_records",
+            "id", "funder", "total_amount", "status", "linked_distribution_records",
             "payment_reference", "impact_narrative", "created_at", "completed_at",
         ]

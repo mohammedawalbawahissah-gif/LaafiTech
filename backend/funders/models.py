@@ -31,12 +31,17 @@ class ProcurementOrder(models.Model):
         COMPLETED = "completed", "Completed"
         CANCELLED = "cancelled", "Cancelled"
 
+    class PaymentMethod(models.TextChoices):
+        MOMO_PROMPT = "momo_prompt", "MTN MoMo (USSD prompt)"
+        HUBTEL_CHECKOUT = "hubtel_checkout", "Card / Bank / Other MoMo (Hubtel)"
+
     funder = models.ForeignKey(FunderOrganization, on_delete=models.PROTECT, related_name="procurement_orders")
     target_school = models.ForeignKey("distributions.School", on_delete=models.PROTECT, related_name="procurement_orders")
     quantity_requested = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING_PAYMENT)
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.HUBTEL_CHECKOUT)
 
     linked_distribution_records = models.ManyToManyField(
         "distributions.DistributionRecord", blank=True, related_name="procurement_orders"
