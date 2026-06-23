@@ -119,7 +119,6 @@ export default function Signup() {
           <input id="email" type="email" value={form.email} onChange={update("email")} placeholder="you@example.com" required />
           <p className="sub" style={{ marginTop: 4 }}>You can use the same email for multiple roles (e.g. agent + community user).</p>
         </div>
-        </div>
 
         <div className="field">
           <label htmlFor="phone">Phone number</label>
