@@ -46,8 +46,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (phone_number, password) => {
-    const res = await client.post("/auth/login/", { phone_number, password });
+  const login = async (email, password, role) => {
+    const payload = { email, password };
+    if (role) payload.role = role;
+    const res = await client.post("/auth/login/", payload);
     localStorage.setItem("laafitech_token", res.data.token);
     setUser(res.data.user);
     if (res.data.user.role === "agent") await loadAgentProfile();

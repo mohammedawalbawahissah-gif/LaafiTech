@@ -24,7 +24,6 @@ export default function Signup() {
     role: "community_user",
     first_name: "",
     last_name: "",
-    username: "",
     email: "",
     phone_number: "",
     password: "",
@@ -116,13 +115,10 @@ export default function Signup() {
         </div>
 
         <div className="field">
-          <label htmlFor="username">Username</label>
-          <input id="username" value={form.username} onChange={update("username")} required />
+          <label htmlFor="email">Email address</label>
+          <input id="email" type="email" value={form.email} onChange={update("email")} placeholder="you@example.com" required />
+          <p className="sub" style={{ marginTop: 4 }}>You can use the same email for multiple roles (e.g. agent + community user).</p>
         </div>
-
-        <div className="field">
-          <label htmlFor="email">Email</label>
-          <input id="email" type="email" value={form.email} onChange={update("email")} required />
         </div>
 
         <div className="field">
