@@ -10,8 +10,6 @@ User = get_user_model()
 
 
 class RegisterView(generics.CreateAPIView):
-    """Self-registration. In production, agent registration should require
-    admin approval (see Agent.verification_status) before activation."""
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
@@ -28,17 +26,44 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LoginView(APIView):
-    """Phone number + password login. Swap for OTP-based auth for the agent
-    app in production (better fit for low-literacy / shared-phone contexts)."""
+    """
+    Email + role + password login.
+
+    Accepting role at login is what makes same-email multi-role accounts
+    work: two rows can share an email as long as their roles differ, so the
+    login needs all three fields to unambiguously identify which account the
+    user is trying to access.
+    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        phone_number = request.data.get("phone_number")
-        password = request.data.get("password")
-        try:
-            user = User.objects.get(phone_number=phone_number)
-        except User.DoesNotExist:
-            return Response({"detail": "Invalid credentials."}, status=400)
+        email = request.data.get("email", "").strip().lower()
+        role = request.data.get("role", "").strip()
+        password = request.data.get("password", "")
+
+        if not email or not password:
+            return Response({"detail": "Email and password are required."}, status=400)
+
+        # If role is provided, look up exactly that account.
+        # If not provided and only one account exists for this email, use it.
+        if role:
+            try:
+                user = User.objects.get(email__iexact=email, role=role)
+            except User.DoesNotExist:
+                return Response({"detail": "Invalid credentials."}, status=400)
+        else:
+            matches = User.objects.filter(email__iexact=email)
+            if matches.count() == 1:
+                user = matches.first()
+            elif matches.count() > 1:
+                # Return the list of roles so the frontend can show a picker
+                roles = list(matches.values_list("role", flat=True))
+                return Response(
+                    {"detail": "multiple_roles", "roles": roles},
+                    status=300,
+                )
+            else:
+                return Response({"detail": "Invalid credentials."}, status=400)
 
         if not user.check_password(password):
             return Response({"detail": "Invalid credentials."}, status=400)
@@ -54,15 +79,10 @@ class MeView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
     def get_serializer_class(self):
-        # Writes go through ProfileUpdateSerializer (see its docstring for
-        # why role/phone_number/username are deliberately excluded there).
         if self.request.method in ("PUT", "PATCH"):
             return ProfileUpdateSerializer
         return UserSerializer
 
     def update(self, request, *args, **kwargs):
         super().update(request, *args, **kwargs)
-        # Respond with the full profile (including read-only fields like
-        # role/phone_number) so the frontend can refresh its user state
-        # from a single response shape, same as login/register.
         return Response(UserSerializer(self.get_object()).data)
