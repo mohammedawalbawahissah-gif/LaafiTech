@@ -65,7 +65,7 @@ export default function FunderProfile() {
     <>
       <PageHeader eyebrow="Funder · Profile" title="Profile" accent="coral" />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 520 }}>
+      <div className="profile-card" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
         {/* Account card */}
         <div className="card">
@@ -190,11 +190,11 @@ export default function FunderProfile() {
                 />
               </div>
 
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" disabled={saving}>
+              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} disabled={saving}>
                   {saving ? "Saving..." : "Save organisation"}
                 </button>
-                <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)} disabled={saving}>
+                <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setEditing(false)} disabled={saving}>
                   Cancel
                 </button>
               </div>

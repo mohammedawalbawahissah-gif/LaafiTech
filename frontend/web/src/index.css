@@ -381,6 +381,9 @@ tr:last-child td { border-bottom: none; }
 
 /* ---- Forms ------------------------------------------------------------ */
 
+/* Profile page card — consistent max-width across all portals */
+.profile-card { max-width: 560px; }
+
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .field label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
 .field input, .field select, .field textarea {
@@ -802,6 +805,10 @@ tr:last-child td { border-bottom: none; }
 
   /* Field rows stack on mobile */
   .field-row { flex-direction: column; gap: 0; }
+  .profile-card { max-width: 100%; }
+  /* Profile form two-column grid → single column on mobile */
+  .profile-card form [style*="grid-template-columns"],
+  form [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 
   /* Role toggle — better tap targets */
   .role-option { padding: 14px; }

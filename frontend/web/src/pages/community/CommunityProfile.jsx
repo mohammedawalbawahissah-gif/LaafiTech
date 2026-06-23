@@ -10,7 +10,7 @@ export default function CommunityProfile() {
     <>
       <PageHeader eyebrow="Community" title="Profile" accent="pink" />
 
-      <div className="card" style={{ maxWidth: 420 }}>
+      <div className="card profile-card">
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
           <div style={{
             width: 48, height: 48, borderRadius: "50%", background: "var(--pink-tint)",

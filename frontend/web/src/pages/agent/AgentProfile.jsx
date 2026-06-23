@@ -38,7 +38,7 @@ export default function AgentProfile() {
     <>
       <PageHeader eyebrow="Agent · Field Ops" title="Profile" accent="coral" />
 
-      <div className="card" style={{ maxWidth: 480 }}>
+      <div className="card profile-card">
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
           <div style={{
             width: 48, height: 48, borderRadius: "50%", background: "var(--coral-tint)",

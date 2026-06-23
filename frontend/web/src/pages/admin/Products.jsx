@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import client from "../../api/client";
 import PageHeader from "../../components/PageHeader";
 import BloomMark from "../../components/BloomMark";
@@ -11,30 +11,55 @@ const CATEGORIES = [
   { value: "other", label: "Other" },
 ];
 
-const EMPTY_FORM = { name: "", description: "", category: "pads", price: "", image_url: "", in_stock: true };
+const EMPTY_FORM = { name: "", description: "", category: "pads", price: "", in_stock: true };
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
 
   const load = () => {
     setLoading(true);
-    client.get("/community/products/").then((res) => setProducts(res.data.results ?? res.data)).finally(() => setLoading(false));
+    client.get("/community/products/")
+      .then((res) => setProducts(res.data.results ?? res.data))
+      .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
+
+  const resetForm = () => {
+    setForm(EMPTY_FORM);
+    setImageFile(null);
+    setImagePreview("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
     try {
-      await client.post("/community/products/", form);
-      setForm(EMPTY_FORM);
+      const data = new FormData();
+      Object.entries(form).forEach(([k, v]) => data.append(k, v));
+      if (imageFile) data.append("image", imageFile);
+
+      await client.post("/community/products/", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      resetForm();
       setShowForm(false);
       load();
     } catch (err) {
@@ -68,14 +93,14 @@ export default function Products() {
         description="Manage what's for sale in the community shop."
         accent="coral"
         action={
-          <button className="btn btn-primary" onClick={() => setShowForm((s) => !s)}>
+          <button className="btn btn-primary" onClick={() => { setShowForm((s) => !s); if (showForm) resetForm(); }}>
             {showForm ? "Cancel" : "Add product"}
           </button>
         }
       />
 
       {showForm && (
-        <form className="card" style={{ marginBottom: 20, maxWidth: 640 }} onSubmit={submit}>
+        <div className="card" style={{ marginBottom: 20, maxWidth: 640 }}>
           <div className="card-title">
             <div className="icon-badge icon-badge-coral">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -90,42 +115,91 @@ export default function Products() {
           {error && <div className="auth-error" style={{ marginBottom: 14 }}>{error}</div>}
 
           <div className="field">
-            <label htmlFor="name">Name</label>
-            <input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Laafi Comfort Pads (Pack of 10)" />
+            <label htmlFor="prod_name">Name</label>
+            <input id="prod_name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Laafi Comfort Pads (Pack of 10)" />
           </div>
 
           <div className="field">
-            <label htmlFor="description">Description</label>
-            <textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional details for shoppers" />
+            <label htmlFor="prod_desc">Description</label>
+            <textarea id="prod_desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional details for shoppers" />
           </div>
 
-          <div className="field-row">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
             <div className="field">
-              <label htmlFor="category">Category</label>
-              <select id="category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              <label htmlFor="prod_cat">Category</label>
+              <select id="prod_cat" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
             </div>
             <div className="field">
-              <label htmlFor="price">Price (GHS)</label>
-              <input id="price" required type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00" />
+              <label htmlFor="prod_price">Price (GHS)</label>
+              <input id="prod_price" required type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00" />
             </div>
           </div>
 
+          {/* Image upload */}
           <div className="field">
-            <label htmlFor="image_url">Image URL (optional)</label>
-            <input id="image_url" type="url" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+            <label>Product image (optional)</label>
+            <div
+              className="product-image-upload"
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                border: "2px dashed var(--line)",
+                borderRadius: "var(--radius)",
+                padding: "20px 16px",
+                textAlign: "center",
+                cursor: "pointer",
+                background: "var(--bg)",
+                transition: "border-color 0.15s",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--primary)"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--line)"}
+            >
+              {imagePreview ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 14, justifyContent: "center" }}>
+                  <img src={imagePreview} alt="Preview" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, border: "1px solid var(--line)" }} />
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{imageFile?.name}</div>
+                    <div className="sub">{(imageFile?.size / 1024).toFixed(1)} KB · Click to change</div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32" style={{ marginBottom: 8 }}>
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="m21 15-5-5L5 21" />
+                  </svg>
+                  <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Click to choose an image from your computer</div>
+                  <div className="sub">JPG, PNG or WebP · max 5 MB</div>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
+              onChange={handleImageChange}
+            />
           </div>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, fontSize: 13.5, fontWeight: 600, color: "var(--ink-soft)" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, fontSize: 13.5, fontWeight: 600, color: "var(--ink-soft)", cursor: "pointer" }}>
             <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm({ ...form, in_stock: e.target.checked })} />
             In stock
           </label>
 
-          <button className="btn btn-primary" disabled={saving}>{saving ? "Saving..." : "Save product"}</button>
-        </form>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-primary" style={{ flex: 1 }} onClick={submit} disabled={saving}>
+              {saving ? "Saving..." : "Save product"}
+            </button>
+            <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => { resetForm(); setShowForm(false); }} disabled={saving}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {loading && <p style={{ color: "var(--ink-soft)" }}>Loading...</p>}
@@ -155,7 +229,14 @@ export default function Products() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.name}</td>
+                  <td style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 6, border: "1px solid var(--line)", flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 36, height: 36, borderRadius: 6, background: "var(--coral-tint)", flexShrink: 0 }} />
+                    )}
+                    {p.name}
+                  </td>
                   <td style={{ textTransform: "capitalize" }}>{p.category.replace("_", " ")}</td>
                   <td className="mono">GHS {p.price}</td>
                   <td>
