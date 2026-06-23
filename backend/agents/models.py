@@ -25,8 +25,8 @@ class Agent(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="agent_profile")
     agent_code = models.CharField(max_length=20, unique=True)
     catchment_area = models.CharField(max_length=150, help_text="Community / area the agent primarily serves")
-    gps_home_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    gps_home_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    gps_home_lat = models.DecimalField(max_digits=11, decimal_places=8, blank=True, null=True)
+    gps_home_lng = models.DecimalField(max_digits=11, decimal_places=8, blank=True, null=True)
     verification_status = models.CharField(max_length=20, choices=VerificationStatus.choices, default=VerificationStatus.PENDING)
 
     mobile_money_number = models.CharField(max_length=20)
