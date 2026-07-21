@@ -10,6 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("accounts", "0001_create_schema"),
+        ("auth", "0001_initial"),
     ]
 
     operations = [
