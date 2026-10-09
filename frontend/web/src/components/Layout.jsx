@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AssistantWidget from "./AssistantWidget";
 import NavIcon from "./NavIcon";
+import LogoMark from "./LogoMark";
 
 const ADMIN_NAV = [
   { to: "/admin", label: "Dashboard", icon: "dashboard", title: "Dashboard", end: true },
@@ -78,7 +79,9 @@ export default function Layout() {
       {/* ── Desktop sidebar rail ── */}
       <aside className={`rail${expanded ? " expanded" : ""}`}>
         <div className="rail-top">
-          <div className="rail-brand" title="LaafiTech">L</div>
+          <div className="rail-brand" title="LaafiTech">
+            <LogoMark size={34} />
+          </div>
           <button
             className="rail-toggle"
             onClick={() => setExpanded((e) => !e)}
@@ -115,7 +118,9 @@ export default function Layout() {
         {/* Mobile top bar */}
         <header className="mobile-topbar">
           <div className="mobile-topbar-brand">
-            <div className="rail-brand" style={{ width: 28, height: 28, fontSize: 12 }}>L</div>
+            <div className="rail-brand" style={{ width: 28, height: 28 }}>
+              <LogoMark size={28} />
+            </div>
             <span className="mobile-topbar-title">LaafiTech</span>
           </div>
           <div className="mobile-topbar-right">

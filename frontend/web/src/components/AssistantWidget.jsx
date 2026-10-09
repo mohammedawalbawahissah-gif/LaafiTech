@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import client from "../api/client";
+import LogoMark from "./LogoMark";
 
 const ROLE_GREETING = {
   agent: "Ask me about your deliveries, inventory, or payouts.",
@@ -62,7 +63,10 @@ export default function AssistantWidget({ role }) {
           }}
         >
           <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <strong style={{ fontSize: 14 }}>LaafiTech Assistant</strong>
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <LogoMark size={20} />
+              <strong style={{ fontSize: 14 }}>LaafiTech Assistant</strong>
+            </span>
             <button onClick={() => setOpen(false)} className="btn btn-ghost" style={{ padding: "2px 8px", fontSize: 12 }}>
               ✕
             </button>

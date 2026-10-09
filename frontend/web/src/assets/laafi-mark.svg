@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><clipPath id="rt"><rect width="100" height="100" rx="22"/></clipPath></defs>
+  <g clip-path="url(#rt)"><rect width="100" height="100" fill="#1b2a4a"/><ellipse cx="50" cy="26.562" rx="14.062" ry="23.438" fill="#e8604c" transform="rotate(0 50 50)"/>
+    <ellipse cx="50" cy="26.562" rx="14.062" ry="23.438" fill="#e8604c" transform="rotate(72 50 50)"/>
+    <ellipse cx="50" cy="26.562" rx="14.062" ry="23.438" fill="#e8604c" transform="rotate(144 50 50)"/>
+    <ellipse cx="50" cy="26.562" rx="14.062" ry="23.438" fill="#e8604c" transform="rotate(216 50 50)"/>
+    <ellipse cx="50" cy="26.562" rx="14.062" ry="23.438" fill="#e8604c" transform="rotate(288 50 50)"/>
+    <circle cx="50" cy="50" r="14.062" fill="#faeeda"/></g>
+</svg>

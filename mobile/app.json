@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A4F47"
+      "backgroundColor": "#1b2a4a"
     },
     "ios": {
       "supportsTablet": true,
@@ -24,7 +24,8 @@
       "package": "com.laafitech.agent",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0A4F47"
+        "backgroundColor": "#1b2a4a",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "CAMERA"]
     },
