@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { roleHome } from "../utils/roleHome";
+import LogoMark from "../components/LogoMark";
 
 const ROLE_LABELS = {
   community_user: "Individual / Community User",
@@ -60,6 +61,7 @@ export default function Login() {
   return (
     <div className="auth-screen">
       <form className="auth-card" onSubmit={handleSubmit}>
+        <LogoMark size={48} style={{ marginBottom: 14 }} />
         <h1>LaafiTech</h1>
         <p className="tag">Distribution &amp; impact platform</p>
 

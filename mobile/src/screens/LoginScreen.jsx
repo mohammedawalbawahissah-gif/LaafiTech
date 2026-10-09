@@ -4,6 +4,7 @@ import { colors, fonts } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import Field from "../components/Field";
 import Button from "../components/Button";
+import LogoMark from "../components/LogoMark";
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -26,7 +27,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.brandDot} />
+      <LogoMark size={56} style={styles.brandMark} />
       <Text style={styles.title}>LaafiTech</Text>
       <Text style={styles.subtitle}>Agent app</Text>
 
@@ -42,7 +43,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.primaryDark, padding: 28, justifyContent: "center" },
-  brandDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.accent, marginBottom: 10 },
+  brandMark: { marginBottom: 14 },
   title: { fontFamily: fonts.display, fontSize: 30, color: "#fff" },
   subtitle: { fontFamily: fonts.body, fontSize: 14, color: "#cfe4e0", marginBottom: 28 },
   form: { backgroundColor: colors.surface, borderRadius: 18, padding: 24 },
